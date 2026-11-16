@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { isCurrentPath } from '../lib/nav';
+import { officialLinks } from '../data/competition';
 
 interface Props {
   title: string;
@@ -23,6 +24,7 @@ const navLinks = [
 ];
 
 const currentPath = Astro.url.pathname;
+const guidelines = officialLinks.find((link) => link.id === 'guidelines')!;
 ---
 
 <!doctype html>
@@ -90,7 +92,10 @@ const currentPath = Astro.url.pathname;
         <p>
           A study guide made by GCIC (Green Hope Capital Investment Club) for its members.
         </p>
-        <!-- TODO: add official YIS competition links and any disclaimer wording once provided. -->
+        <p class="mt-1">
+          An independent GCIC study guide, not an official YIS resource.{' '}
+          <a href={guidelines.url}>Official YIS guidelines and rubric</a>
+        </p>
       </div>
     </footer>
   </body>

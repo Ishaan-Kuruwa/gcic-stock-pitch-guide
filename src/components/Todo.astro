@@ -1,0 +1,11 @@
+---
+interface Props {
+  title?: string;
+}
+const { title = 'TODO' } = Astro.props;
+---
+
+<aside class="my-4 rounded border-2 border-dashed border-border bg-surface p-4" role="note">
+  <p class="font-semibold">{title}</p>
+  <div class="text-muted"><slot /></div>
+</aside>

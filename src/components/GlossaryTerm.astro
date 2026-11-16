@@ -1,0 +1,11 @@
+---
+import type { GlossaryId } from "../data/glossary";
+
+interface Props {
+  /** Anchor id on /glossary. */
+  id: GlossaryId;
+}
+const { id } = Astro.props;
+---
+
+<a href={`/glossary#${id}`}><slot /></a>

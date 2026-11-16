@@ -1,17 +1,34 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Countdown from '../components/Countdown.tsx';
+import { deadline } from '../data/competition';
 ---
 
 <BaseLayout title="GCIC Stock Pitch Guide">
-  <h1 class="mb-6 text-3xl font-bold">GCIC Stock Pitch Guide</h1>
+  <h1 class="text-3xl sm:text-4xl font-bold">Your guide to the YIS Stock Pitch Competition</h1>
+  <p class="mt-4 text-lg">
+    New to investing? This site walks GCIC members through the competition one step at a time:
+    picking a company, researching it, figuring out what it's worth, and turning that into a
+    report, a slide deck, and a video pitch.
+  </p>
+  <p class="mt-2">
+    The site teaches and gives you tools to calculate, organize, and check your work. Everything
+    you submit has to be written by you.
+  </p>
 
-  <section
-    aria-label="To do"
-    class="rounded border-2 border-dashed border-border bg-surface p-4"
-  >
-    <p class="font-semibold">TODO: Home page content</p>
-    <p class="text-muted">
-      This page is a placeholder. Home page text has not been provided yet.
-    </p>
-  </section>
+  <div class="mt-8">
+    <Countdown client:visible deadlineIso={deadline.iso} deadlineDisplay={deadline.display} />
+  </div>
+
+  <div class="mt-8 flex flex-col sm:flex-row gap-3">
+    <a
+      href="/learn"
+      class="inline-block rounded-lg bg-accent px-6 py-3 text-center text-lg font-bold text-accent-contrast no-underline hover:underline"
+    >
+      Start here
+    </a>
+    <a href="/rules" class="inline-block rounded-lg border-2 border-accent px-6 py-3 text-center text-lg font-bold no-underline hover:underline">
+      Read the rules
+    </a>
+  </div>
 </BaseLayout>
