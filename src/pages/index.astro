@@ -1,16 +1,17 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title="GCIC Stock Pitch Guide">
+  <h1 class="mb-6 text-3xl font-bold">GCIC Stock Pitch Guide</h1>
+
+  <section
+    aria-label="To do"
+    class="rounded border-2 border-dashed border-border bg-surface p-4"
+  >
+    <p class="font-semibold">TODO: Home page content</p>
+    <p class="text-muted">
+      This page is a placeholder. Home page text has not been provided yet.
+    </p>
+  </section>
+</BaseLayout>

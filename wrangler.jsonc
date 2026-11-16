@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gcic-stock-pitch-guide",
+  "compatibility_date": "2026-11-16",
+  // Static site only: Cloudflare serves the files Astro builds into ./dist.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}

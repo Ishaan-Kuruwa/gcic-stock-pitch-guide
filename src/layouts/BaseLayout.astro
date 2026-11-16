@@ -1,0 +1,97 @@
+---
+import '../styles/global.css';
+import { isCurrentPath } from '../lib/nav';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = 'A step-by-step guide for GCIC members entering the YIS Global Stock Pitch Competition.',
+} = Astro.props;
+
+const siteName = 'GCIC Stock Pitch Guide';
+const pageTitle = title === siteName ? siteName : `${title} | ${siteName}`;
+
+const navLinks = [
+  { href: '/learn', label: 'Learn' },
+  { href: '/tools', label: 'Tools' },
+  { href: '/rules', label: 'Rules' },
+  { href: '/glossary', label: 'Glossary' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <title>{pageTitle}</title>
+  </head>
+  <body class="flex min-h-screen flex-col bg-bg text-text">
+    <a
+      href="#main"
+      class="no-print sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-contrast"
+    >
+      Skip to main content
+    </a>
+
+    <header class="border-b border-border bg-surface">
+      <div
+        class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3"
+      >
+        <a
+          href="/"
+          class="text-lg font-bold text-text no-underline"
+          aria-current={isCurrentPath(currentPath, '/') ? 'page' : undefined}
+        >
+          {siteName}
+        </a>
+        <nav aria-label="Main" class="no-print">
+          <ul class="flex flex-wrap gap-x-1 gap-y-1">
+            {
+              navLinks.map(({ href, label }) => {
+                const current = isCurrentPath(currentPath, href);
+                return (
+                  <li>
+                    <a
+                      href={href}
+                      aria-current={current ? 'page' : undefined}
+                      class:list={[
+                        'inline-block rounded px-3 py-2 no-underline hover:underline',
+                        current ? 'bg-accent font-semibold text-accent-contrast' : 'text-text',
+                      ]}
+                    >
+                      {label}
+                    </a>
+                  </li>
+                );
+              })
+            }
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" tabindex="-1" class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+      <slot />
+    </main>
+
+    <footer class="no-print border-t border-border bg-surface">
+      <div class="mx-auto max-w-5xl px-4 py-6 text-sm text-muted">
+        <p>
+          A study guide made by GCIC (Green Hope Capital Investment Club) for its members.
+        </p>
+        <!-- TODO: add official YIS competition links and any disclaimer wording once provided. -->
+      </div>
+    </footer>
+  </body>
+</html>
