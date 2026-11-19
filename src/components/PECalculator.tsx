@@ -39,8 +39,8 @@ const fields: { id: MainField; label: ComponentChildren }[] = [
   },
 ];
 
-const inputClass = `w-full rounded-md border-2 border-border bg-surface p-3 text-lg text-text aria-[invalid=true]:border-l-8 ${focus}`;
-const smallButton = `rounded-md border-2 border-border px-4 py-2 font-bold text-text transition-colors duration-200 hover:border-accent disabled:cursor-not-allowed disabled:opacity-60 ${focus}`;
+const inputClass = `w-full rounded-md border-2 border-muted bg-surface p-3 text-lg text-text aria-[invalid=true]:border-l-8 ${focus}`;
+const smallButton = `rounded-md border-2 border-muted px-4 py-2 font-bold text-text transition-colors duration-200 hover:border-accent disabled:cursor-not-allowed disabled:opacity-60 ${focus}`;
 
 interface Props {
   /** Level for this tool's section headings, so they fit under the page's own headings. */

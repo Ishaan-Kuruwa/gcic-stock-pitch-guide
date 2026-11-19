@@ -185,7 +185,7 @@ export default function ProgressTracker({ modules, variant }: Props) {
             readOnly
             rows={4}
             value={fallbackText}
-            class={`mt-1 w-full rounded-md border-2 border-border bg-surface p-3 text-text ${focus}`}
+            class={`mt-1 w-full rounded-md border-2 border-muted bg-surface p-3 text-text ${focus}`}
           />
         </div>
       )}
