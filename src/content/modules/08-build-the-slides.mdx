@@ -22,6 +22,7 @@ import { categoryPoints } from '../../lib/facts';
 import {
   fileNames,
   firstPageFields,
+  guidance,
   limits,
   requiredSections,
 } from '../../data/competition';
@@ -68,7 +69,7 @@ export const slidesFileName = fileNames.find((f) => f.item === 'slides')?.patter
 
   ### Show numbers as visuals
 
-  YIS asks you to use slides as a visual for financial information, like charts and graphs. Turn your key numbers into a simple chart: a bar chart for revenue over time, a table for your valuation math, a pie chart for a revenue breakdown. Give each chart a clear title and a source line.
+  YIS asks you to use slides as a visual for financial information, like {guidance.slides.financialVisuals.join(' and ')}. Turn your key numbers into a simple chart: a bar chart for revenue over time, a table for your valuation math, a pie chart for a revenue breakdown. Give each chart a clear title and a source line.
 
   ### Keep the design simple
 

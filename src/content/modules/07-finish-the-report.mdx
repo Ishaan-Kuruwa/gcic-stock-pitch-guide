@@ -18,6 +18,7 @@ import { formatDue } from '../../lib/modules';
 import {
   fileNames,
   firstPageFields,
+  guidance,
   limits,
   officialLinks,
   requiredSections,
@@ -35,7 +36,7 @@ export const reportFileName = fileNames.find((f) => f.item === 'report')?.patter
 <Part id="learn">
   ### Start from the YIS template
 
-  YIS strongly encourages using its <a href={reportTemplateUrl}>Stock Pitch Report Template</a>. Move your drafts into it, or into GHIC's copy of it, so your layout matches what judges expect.
+  YIS {guidance.reportTemplate} using its <a href={reportTemplateUrl}>Stock Pitch Report Template</a>. Move your drafts into it, or into GHIC's copy of it, so your layout matches what judges expect.
 
   ### The first page
 

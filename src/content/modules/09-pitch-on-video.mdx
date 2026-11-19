@@ -21,7 +21,9 @@ import Part from '../../components/ModulePart.astro';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import { formatDue } from '../../lib/modules';
 import { categoryPoints } from '../../lib/facts';
-import { limits } from '../../data/competition';
+import { guidance, limits } from '../../data/competition';
+
+export const editing = guidance.videoEditing;
 
 <Part id="why">
   The video is worth {categoryPoints('video')} points, and it's where judges see you, not just your work. They score whether you present clearly and stay within the time limit, know your company, come across as professional, and make eye contact. Pace also counts in the presentation score.
@@ -35,7 +37,7 @@ import { limits } from '../../data/competition';
   - It must be under {limits.videoMaxMinutes} minutes. Going over can cost you points.
   - It must show you giving the presentation, with your slides in the video.
   - Don't speed it up.
-  - Editing isn't required, and YIS doesn't recommend it. One continuous take is fine.
+  - {editing.required ? 'Editing is required' : "Editing isn’t required"}{editing.recommended ? '' : ", and YIS doesn’t recommend it"}. One continuous take is fine.
   - It goes on YouTube, and judges must be able to open the link.
 
   ### Plan for eight minutes
@@ -70,7 +72,7 @@ import { limits } from '../../data/competition';
   - Set visibility to **Unlisted or Public, never Private**; a Private video can't be opened by judges
   - Title it with your names, school, and company
   - Test the link in a private browser window while signed out. If it plays there, judges can open it
-  - Keep it up and viewable from February through May, when judging ends
+  - Keep it up and viewable from {guidance.videoViewable.from} through {guidance.videoViewable.through}, when judging ends
 
   ### Rehearse with feedback
 
