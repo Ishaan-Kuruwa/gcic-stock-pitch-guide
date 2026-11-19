@@ -15,6 +15,7 @@ import Part from '../../components/ModulePart.astro';
 import TodoBlock from '../../components/Todo.astro';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import { formatDue } from '../../lib/modules';
+import { claimBoardUrl } from '../../data/club';
 
 <Part id="why">
   You're going to spend the next two months with this company. You'll read its reports, learn its competitors, and explain it on camera. Pick a business you find interesting and can actually understand, and every step after this gets easier. Pick one that's confusing or has little information out there, and you'll be fighting it the whole way.
@@ -61,11 +62,7 @@ import { formatDue } from '../../lib/modules';
 
   ### One team per company
 
-  In GHIC, no two teams pitch the same company, so every pitch is different. Once you and your partner agree, claim your company on the claim board. If someone already has it, pick another or ask that team whether they need a partner.
-
-  <TodoBlock title="TODO: Claim board link">
-    Link "claim board" once the real URL is set as claimBoardUrl in src/data/club.ts.
-  </TodoBlock>
+  In GHIC, no two teams pitch the same company, so every pitch is different. Once you and your partner agree, claim your company on the <a href={claimBoardUrl}>claim board</a>. If someone already has it, pick another or ask that team whether they need a partner.
 </Part>
 
 <Part id="see">
