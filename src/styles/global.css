@@ -89,45 +89,4 @@
   }
 }
 
-/* Print: plain black on white, no site chrome, show where links go. */
-@media print {
-  :root,
-  :root[data-theme="dark"] {
-    color-scheme: light;
-    --gc-bg: #ffffff;
-    --gc-surface: #ffffff;
-    --gc-text: #000000;
-    --gc-muted: #333333;
-    --gc-accent: #000000;
-    --gc-border: #999999;
-  }
-
-  html {
-    font-size: 12pt;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-
-  a[href^="http"]::after {
-    content: " (" attr(href) ")";
-    font-size: 0.9em;
-    word-break: break-all;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4 {
-    break-after: avoid;
-  }
-
-  figure,
-  table,
-  pre,
-  blockquote,
-  img {
-    break-inside: avoid;
-  }
-}
+/* Print styles live in print.css, imported after this file by BaseLayout. */

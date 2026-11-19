@@ -26,3 +26,16 @@ export function groupRubric<C extends RubricCategory, L extends RubricLine>(
     return { category, lines: own, total: rubricTotal(own) };
   });
 }
+
+/** The rubric lines for the given ids, in rubric order. Throws on an unknown id. */
+export function rubricLinesFor<L extends RubricLine>(
+  lines: readonly L[],
+  ids: readonly string[],
+): L[] {
+  const known = new Set(lines.map((line) => line.id));
+  for (const id of ids) {
+    if (!known.has(id)) throw new Error(`Unknown rubric id "${id}".`);
+  }
+  const wanted = new Set(ids);
+  return lines.filter((line) => wanted.has(line.id));
+}

@@ -1,0 +1,38 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import ModuleLayout, { type ModuleNavTarget } from '../../layouts/ModuleLayout.astro';
+import { assertParts, moduleSlug, prevNext, sortModules } from '../../lib/modules';
+
+export async function getStaticPaths() {
+  const modules = sortModules(await getCollection('modules'));
+  const link = (m: CollectionEntry<'modules'>): ModuleNavTarget => ({
+    href: `/learn/${moduleSlug(m.id)}`,
+    number: m.data.number,
+    title: m.data.title,
+  });
+
+  return modules.map((entry, index) => {
+    assertParts(entry.id, entry.body ?? '');
+    const { prev, next } = prevNext(modules, index);
+    const isLive = entry.data.status === 'live';
+    // A live page with no live neighbor on a side says "coming soon" instead of linking to a draft.
+    const side = (m: CollectionEntry<'modules'> | undefined, hasModulesThatWay: boolean) =>
+      m ? link(m) : isLive && hasModulesThatWay ? ('coming-soon' as const) : undefined;
+    return {
+      params: { slug: moduleSlug(entry.id) },
+      props: {
+        entry,
+        prev: side(prev, index > 0),
+        next: side(next, index < modules.length - 1),
+      },
+    };
+  });
+}
+
+const { entry, prev, next } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<ModuleLayout data={entry.data} prev={prev} next={next}>
+  <Content />
+</ModuleLayout>

@@ -1,0 +1,17 @@
+---
+import { MODULE_PARTS, type ModulePartId } from '../lib/modules';
+
+interface Props {
+  /** Which of the five module parts this is. The heading text comes from MODULE_PARTS. */
+  id: ModulePartId;
+}
+const { id } = Astro.props;
+const part = MODULE_PARTS.find((p) => p.id === id);
+if (!part) throw new Error(`Unknown module part "${id}".`);
+const headingId = `part-${id}`;
+---
+
+<section aria-labelledby={headingId} class="module-part mt-10">
+  <h2 id={headingId} class="scroll-mt-4 text-2xl font-bold">{part.title}</h2>
+  <slot />
+</section>

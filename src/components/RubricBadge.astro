@@ -1,0 +1,43 @@
+---
+import { rubricLines, rubricTotalPoints } from '../data/competition';
+import { rubricLinesFor, rubricTotal } from '../lib/rubric';
+
+interface Props {
+  /** Rubric line ids from src/data/competition.ts. */
+  ids: readonly string[];
+}
+const { ids } = Astro.props;
+const lines = rubricLinesFor(rubricLines, ids);
+const total = rubricTotal(lines);
+---
+
+<section aria-labelledby="rubric-badge" class="rubric-badge rounded border border-border bg-surface p-4">
+  <h2 id="rubric-badge" class="text-lg font-bold">
+    {
+      lines.length > 0 ? (
+        <>Points at stake: {total} of {rubricTotalPoints}</>
+      ) : (
+        <>Rubric</>
+      )
+    }
+  </h2>
+  {
+    lines.length > 0 ? (
+      <ul class="mt-2 space-y-1">
+        {lines.map((line) => (
+          <li class="flex justify-between gap-4">
+            <a href={`/rules#rubric-${line.id}`}>{line.label}</a>
+            <span class="shrink-0 tabular-nums">
+              {line.points} <span class="sr-only">points</span><span aria-hidden="true">pts</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="mt-2">
+        This module isn't scored by a specific rubric line. See the{' '}
+        <a href="/rules#rubric">full {rubricTotalPoints}-point rubric</a>.
+      </p>
+    )
+  }
+</section>
