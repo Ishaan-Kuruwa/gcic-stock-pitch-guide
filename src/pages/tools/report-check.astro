@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ReportCheck from '../../components/ReportCheck.tsx';
+import { officialLinks } from '../../data/competition';
+import { eyebrow, fadeUp } from '../../lib/styles';
+
+const guidelines = officialLinks.find((l) => l.id === 'guidelines')!;
+---
+
+<BaseLayout
+  title="Report Check"
+  description="Tick off every YIS requirement for your report and slides before you submit."
+>
+  <header class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}><a href="/tools" class="text-muted">Tools</a></p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">Report Check</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      Open your finished report and slides next to this page. Tick each item only after you've
+      found it in your own files. Your ticks are saved in this browser.
+    </p>
+    <p class="mt-3 text-sm text-muted">
+      This list comes from the YIS <a href={guidelines.url}>{guidelines.label.toLowerCase()}</a>.
+      If anything here disagrees with that page, follow YIS. See the <a href="/rules">rules</a>.
+    </p>
+  </header>
+
+  <div class="mt-10">
+    <ReportCheck client:visible />
+  </div>
+</BaseLayout>
