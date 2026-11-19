@@ -74,8 +74,11 @@ describe('reportChecklist', () => {
     expect(labels.some((l) => l.includes('PDF'))).toBe(true);
   });
 
-  it('includes the public-information rule', () => {
-    expect(labels).toContain(contentRules[0]);
+  it('includes every content rule in Format and files', () => {
+    const format = groups.find((g) => g.id === 'format')!;
+    for (const rule of contentRules) {
+      expect(format.items.map((i) => i.label)).toContain(rule);
+    }
   });
 
   it('includes both file names', () => {
@@ -93,7 +96,7 @@ describe('reportChecklist', () => {
       firstPageFields.length +
         requiredSections.length +
         report.constraints.length +
-        1 +
+        contentRules.length +
         fileNames.length +
         slides.constraints.length,
     );

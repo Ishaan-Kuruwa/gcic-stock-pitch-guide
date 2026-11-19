@@ -51,11 +51,11 @@ function constraintsFor(itemId: 'report' | 'slides'): ReportCheckItem[] {
 
 /**
  * The full checklist, built only from competition.ts. Every first-page field,
- * every required section, the report and slides format rules, the
- * public-information rule, and both file names.
+ * every required section, the report and slides format rules, both content
+ * rules (public information, independent analyst), and both file names.
  */
 export function reportChecklist(): ReportCheckGroup[] {
-  const publicInfo = contentRules[0];
+  const [publicInfo, analyst] = contentRules;
   return [
     {
       id: 'first-page',
@@ -75,6 +75,7 @@ export function reportChecklist(): ReportCheckGroup[] {
       items: [
         ...constraintsFor('report'),
         item('content:public-info', publicInfo),
+        item('content:analyst', analyst),
         ...fileNames.map((f) => item(`file-name:${f.item}`, `File named: ${f.pattern}`)),
         ...constraintsFor('slides'),
       ],

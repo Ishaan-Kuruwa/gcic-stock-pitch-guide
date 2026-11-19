@@ -8,6 +8,7 @@ import {
   removeRisk,
   riskGrid,
   riskScore,
+  riskTableHtml,
   riskTableText,
   sortRisks,
   updateRisk,
@@ -136,6 +137,28 @@ describe('riskTableText', () => {
 
   it('is just the header with no risks', () => {
     expect(riskTableText([])).toBe('#\tRisk\tLikelihood\tImpact\tScore\tMitigant');
+  });
+});
+
+describe('riskTableHtml', () => {
+  it('is a real table with the same cells, escaped', () => {
+    const sorted = sortRisks([
+      { id: 'a', text: 'Tariffs <on> "imports" & more', likelihood: 3, impact: 2, mitigant: 'Local\nsuppliers' },
+    ]);
+    const html = riskTableHtml(sorted);
+    expect(html.startsWith('<table')).toBe(true);
+    expect(html.match(/<th /g)).toHaveLength(6);
+    expect(html.match(/<tr>/g)).toHaveLength(2);
+    expect(html).toContain('>Tariffs &lt;on&gt; &quot;imports&quot; &amp; more</td>');
+    expect(html).toContain('>High</td>');
+    expect(html).toContain('>Medium</td>');
+    expect(html).toContain('>6</td>');
+    expect(html).toContain('>Local suppliers</td>');
+    expect(html).not.toContain('<on>');
+  });
+
+  it('has only the header row with no risks', () => {
+    expect(riskTableHtml([]).match(/<tr>/g)).toHaveLength(1);
   });
 });
 

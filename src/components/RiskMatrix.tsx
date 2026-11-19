@@ -8,6 +8,7 @@ import {
   removeRisk,
   riskGrid,
   riskScore,
+  riskTableHtml,
   riskTableText,
   sortRisks,
   updateRisk,
@@ -20,6 +21,9 @@ import { focus } from '../lib/styles';
 const fieldClass = `mt-1 w-full rounded-md border-2 border-muted bg-surface p-3 text-text ${focus}`;
 const smallButton = `rounded-md border-2 border-muted px-4 py-2 font-bold text-text transition-colors duration-200 enabled:hover:border-accent disabled:cursor-not-allowed disabled:opacity-60 ${focus}`;
 const primaryButton = `rounded-md px-4 py-2 font-bold transition-colors duration-200 bg-accent text-accent-contrast enabled:hover:bg-accent-strong enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-60 ${focus}`;
+
+/** Grid cells at or above this likelihood × impact are marked High. */
+const HIGH_SCORE = 6;
 
 type RatingField = 'likelihood' | 'impact';
 const ratingFields: { field: RatingField; label: string }[] = [
@@ -81,8 +85,19 @@ export default function RiskMatrix() {
   async function onCopy() {
     const text = riskTableText(sorted);
     try {
-      if (!navigator.clipboard?.writeText) throw new Error('No clipboard');
-      await navigator.clipboard.writeText(text);
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+        // Both formats, so docs paste a real table and plain-text boxes get tabs.
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/html': new Blob([riskTableHtml(sorted)], { type: 'text/html' }),
+            'text/plain': new Blob([text], { type: 'text/plain' }),
+          }),
+        ]);
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        throw new Error('No clipboard');
+      }
       setFallbackText(null);
       setCopyStatus('Copied. Paste it into your report.');
     } catch {
@@ -236,6 +251,7 @@ export default function RiskMatrix() {
               </h3>
               <p class="mt-1 text-sm text-muted">
                 Numbers match the table. Rate a risk's likelihood and impact to place it here.
+                Cells marked High have a likelihood × impact of {HIGH_SCORE} or more.
               </p>
               <table class="mt-3 w-full table-fixed border-collapse text-center">
                 <caption class="sr-only">
@@ -261,20 +277,31 @@ export default function RiskMatrix() {
                         <span class="sr-only">Likelihood </span>
                         {ratingLabel(row[0]!.likelihood)}
                       </th>
-                      {row.map((cell) => (
-                        <td
-                          key={cell.impact}
-                          class={`h-16 border border-border p-1 font-display text-xl font-extrabold ${
-                            cell.likelihood * cell.impact >= 6 ? 'bg-tint' : 'bg-surface'
-                          }`}
-                        >
-                          {cell.ranks.length > 0 ? (
-                            cell.ranks.join(', ')
-                          ) : (
-                            <span class="sr-only">None</span>
-                          )}
-                        </td>
-                      ))}
+                      {row.map((cell) => {
+                        const high = cell.likelihood * cell.impact >= HIGH_SCORE;
+                        return (
+                          <td
+                            key={cell.impact}
+                            class={`h-16 border border-border p-1 align-top ${
+                              high ? 'bg-highlight text-highlight-contrast' : 'bg-surface'
+                            }`}
+                          >
+                            {high && (
+                              <span class="block text-xs font-bold uppercase tracking-wider">
+                                High
+                                <span class="sr-only"> score</span>
+                              </span>
+                            )}
+                            <span class="block font-display text-xl font-extrabold">
+                              {cell.ranks.length > 0 ? (
+                                cell.ranks.join(', ')
+                              ) : (
+                                <span class="sr-only">None</span>
+                              )}
+                            </span>
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
@@ -306,8 +333,9 @@ export default function RiskMatrix() {
             </div>
           )}
           <p class="mt-3 max-w-prose text-sm text-muted">
-            The copied text has tabs between columns. Paste it into a spreadsheet, or into your
-            document and convert it to a table.
+            Paste into Google Docs or Word and it becomes a table. If your browser can't copy
+            straight to the clipboard, the text below has tabs between columns: paste it into a
+            spreadsheet, or into your document and convert it to a table.
           </p>
         </section>
       )}

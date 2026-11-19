@@ -132,6 +132,29 @@ export function riskTableText(sorted: readonly Risk[]): string {
   return [header, ...rows].map((cols) => cols.join('\t')).join('\n');
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * The same table as riskTableText, as an HTML <table>, so it pastes as a real
+ * table into Google Docs and Word. Every cell is escaped.
+ */
+export function riskTableHtml(sorted: readonly Risk[]): string {
+  const [header, ...rows] = riskTableText(sorted)
+    .split('\n')
+    .map((line) => line.split('\t').map(escapeHtml));
+  const cell = (tag: 'th' | 'td', v: string) =>
+    `<${tag} style="border:1px solid black;padding:4px;text-align:left;vertical-align:top">${v}</${tag}>`;
+  const head = `<tr>${header!.map((v) => cell('th', v)).join('')}</tr>`;
+  const body = rows.map((r) => `<tr>${r.map((v) => cell('td', v)).join('')}</tr>`).join('');
+  return `<table style="border-collapse:collapse"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+}
+
 /** Turn saved data back into risks. Malformed entries are dropped or reset field by field. */
 export function parseRisks(raw: unknown): Risk[] {
   if (!Array.isArray(raw)) return [];
