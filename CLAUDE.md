@@ -46,6 +46,33 @@ UI text is plain and friendly. Any finance term links to the glossary.
   Why it matters, Learn, See it, Do it, Check it.
 - Link to official YIS resources; never copy them into the site.
 
+## Design
+- Fonts (Google Fonts, loaded in BaseLayout): Big Shoulders Display for h1–h3,
+  the wordmark, and big numbers (`font-display`); Atkinson Hyperlegible for
+  everything else (`font-sans`).
+- Colors: only use the theme tokens in src/styles/global.css, never raw hex in
+  components. Each has light and dark values: `bg` (paper), `surface` (card),
+  `tint` (sage panels, number badges), `text`, `muted`, `accent` (pine: links,
+  primary buttons), `accent-strong` (hover), `accent-contrast` (text on accent),
+  `highlight` (foil: accent bars, current-page marker; a fill, never text on bg),
+  `highlight-contrast`, `border`, `focus`. Any new pair must meet WCAG AA
+  (4.5:1 text, 3:1 focus rings and UI). The focus ring is pine in light mode and
+  foil in dark mode.
+- Patterns: shared class strings live in src/lib/styles.ts (`card`, `lift`,
+  `eyebrow`, `buttonPrimary`, `buttonSecondary`, `numberBadge`, `focus`,
+  `fadeUp`). Page = eyebrow, display h1, foil accent bar, muted lede, with text
+  capped at `max-w-prose` (44rem). Cards are `rounded-xl` with `shadow-card`;
+  only clickable cards get `lift`.
+- Motion: subtle and short (0.5s or less), using `ease-soft`. Allowed: `fadeUp`
+  with a `fadeDelay(i)` stagger, the hover lift, `<details data-animate>`
+  open and close, and the CSS-only page cross-fade (`@view-transition`, no
+  JavaScript router). All motion is behind `motion-safe:` or
+  `prefers-reduced-motion: no-preference`, and the reduced-motion block in
+  global.css must stay.
+- Print stays black on white: print.css resets every token and removes shadows,
+  blur, and animation. Mark purely decorative elements with
+  `class="decorative" aria-hidden="true"` so print hides them.
+
 ## Definition of done (every task)
 - npm run build, npm run check, and npm test all pass
 - Works at 360px and on desktop; usable with keyboard only; no console errors

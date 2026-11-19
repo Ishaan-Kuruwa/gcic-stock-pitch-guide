@@ -2,41 +2,76 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { formatDue, isoDay, moduleSlug, sortModules } from '../../lib/modules';
+import { eyebrow, fadeDelay, fadeUp, focus, lift, numberBadge } from '../../lib/styles';
 
 const modules = sortModules(await getCollection('modules'));
 ---
 
 <BaseLayout title="Learn" description="The learning path: every module, its deliverable, and when it's due.">
-  <h1 class="text-3xl font-bold">Learning path</h1>
-  <p class="mt-2">
-    Work through the modules in order. Each one ends with a deliverable and a due date. Read the{' '}
-    <a href="/rules">rules</a> any time.
-  </p>
+  <header class:list={['max-w-prose', fadeUp]}>
+    <h1 class="text-5xl font-black sm:text-6xl">Learning path</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      Work through the modules in order. Each one ends with a deliverable and a due date. Read the{' '}
+      <a href="/rules">rules</a> any time.
+    </p>
+  </header>
 
-  <ol class="mt-8 space-y-4">
+  <ol class="mt-10 grid max-w-4xl gap-4">
     {
-      modules.map(({ id, data }) => {
+      modules.map(({ id, data }, index) => {
         const live = data.status === 'live';
         const headingId = `module-${data.number}`;
         return (
-          <li>
-            <article aria-labelledby={headingId} class="rounded border border-border bg-surface p-4">
-              <p class="text-sm font-semibold uppercase tracking-wide text-muted">Module {data.number}</p>
-              <h2 id={headingId} class="text-xl font-bold">
-                {live ? <a href={`/learn/${moduleSlug(id)}`}>{data.title}</a> : data.title}
-              </h2>
-              {!live && (
-                <p class="mt-1 inline-block rounded border border-border px-2 text-sm text-muted">Coming soon</p>
-              )}
-              <p class="mt-2">{data.summary}</p>
-              <dl class="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-[auto_1fr]">
-                <dt class="font-bold">Deliverable</dt>
-                <dd>{data.deliverable}</dd>
-                <dt class="font-bold">Due</dt>
-                <dd>
-                  <time datetime={isoDay(data.due)}>{formatDue(data.due)}</time>
-                </dd>
-              </dl>
+          <li class={fadeUp} style={fadeDelay(index + 1)}>
+            <article
+              aria-labelledby={headingId}
+              class:list={[
+                'relative flex gap-4 rounded-xl p-5 sm:gap-5 sm:p-card',
+                live
+                  ? ['border border-border bg-surface shadow-card', lift]
+                  : 'border-2 border-dashed border-border',
+              ]}
+            >
+              <span
+                aria-hidden="true"
+                class:list={[numberBadge, !live && 'bg-transparent text-muted ring-2 ring-border']}
+              >
+                {data.number}
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class={eyebrow}>Module {data.number}</p>
+                <h2 id={headingId} class="mt-1 text-3xl font-extrabold">
+                  {live ? (
+                    // The link covers the whole card, so the card is one click target.
+                    <a
+                      href={`/learn/${moduleSlug(id)}`}
+                      class:list={[
+                        'rounded no-underline after:absolute after:inset-0 after:rounded-xl hover:underline',
+                        focus,
+                      ]}
+                    >
+                      {data.title}
+                    </a>
+                  ) : (
+                    data.title
+                  )}
+                </h2>
+                {!live && (
+                  <p class="mt-2 inline-block rounded-full border border-border px-3 text-sm font-bold text-muted">
+                    Coming soon
+                  </p>
+                )}
+                <p class="mt-2">{data.summary}</p>
+                <dl class="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
+                  <dt class="font-bold text-muted">Deliverable</dt>
+                  <dd>{data.deliverable}</dd>
+                  <dt class="font-bold text-muted">Due</dt>
+                  <dd>
+                    <time datetime={isoDay(data.due)}>{formatDue(data.due)}</time>
+                  </dd>
+                </dl>
+              </div>
             </article>
           </li>
         );

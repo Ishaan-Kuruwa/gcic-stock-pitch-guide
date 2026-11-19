@@ -13,7 +13,37 @@
     --gc-text: #000000;
     --gc-muted: #333333;
     --gc-accent: #000000;
+    --gc-accent-strong: #000000;
+    --gc-accent-contrast: #ffffff;
+    --gc-highlight: #ffffff;
+    --gc-highlight-contrast: #000000;
+    --gc-tint: #ffffff;
     --gc-border: #999999;
+    --gc-focus: #000000;
+    --gc-graph: transparent;
+    --gc-shadow-card: none;
+    --gc-shadow-lift: none;
+  }
+
+  /* No motion, shadows, blur, or decoration on paper. */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .decorative,
+  .bg-graph-paper {
+    display: none !important;
+  }
+
+  .site-header {
+    position: static !important;
+    background: #ffffff !important;
   }
 
   html {

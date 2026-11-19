@@ -2,16 +2,20 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Todo from '../components/Todo.astro';
 import { glossary } from '../data/glossary';
+import { fadeUp } from '../lib/styles';
 ---
 
 <BaseLayout title="Glossary">
-  <h1 class="text-3xl font-bold">Glossary</h1>
-  <dl class="mt-6 space-y-6">
+  <header class:list={['max-w-prose', fadeUp]}>
+    <h1 class="text-5xl font-black sm:text-6xl">Glossary</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+  </header>
+  <dl class="mt-10 max-w-prose divide-y divide-border rounded-xl border border-border bg-surface shadow-card">
     {
       glossary.map((entry) => (
-        <div id={entry.id} class="scroll-mt-4">
-          <dt class="text-xl font-bold">{entry.term}</dt>
-          <dd>
+        <div id={entry.id} class="px-5 py-5 sm:px-card">
+          <dt class="font-display text-3xl font-extrabold text-accent">{entry.term}</dt>
+          <dd class="mt-1">
             {'definition' in entry && entry.definition ? (
               <p>{entry.definition}</p>
             ) : (

@@ -1,17 +1,23 @@
 ---
 import { MODULE_PARTS, type ModulePartId } from '../lib/modules';
+import { fadeUp, numberBadge } from '../lib/styles';
 
 interface Props {
   /** Which of the five module parts this is. The heading text comes from MODULE_PARTS. */
   id: ModulePartId;
 }
 const { id } = Astro.props;
-const part = MODULE_PARTS.find((p) => p.id === id);
+const index = MODULE_PARTS.findIndex((p) => p.id === id);
+const part = MODULE_PARTS[index];
 if (!part) throw new Error(`Unknown module part "${id}".`);
 const headingId = `part-${id}`;
 ---
 
-<section aria-labelledby={headingId} class="module-part mt-10">
-  <h2 id={headingId} class="scroll-mt-4 text-2xl font-bold">{part.title}</h2>
+<section aria-labelledby={headingId} class:list={['module-part mt-14 first:mt-0', fadeUp]}>
+  <h2 id={headingId} class="flex items-center gap-3 text-4xl font-extrabold">
+    <!-- Decorative: the heading text carries the meaning. -->
+    <span aria-hidden="true" class={numberBadge}>{index + 1}</span>
+    {part.title}
+  </h2>
   <slot />
 </section>
