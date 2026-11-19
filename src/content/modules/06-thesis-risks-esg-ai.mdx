@@ -15,33 +15,149 @@ reviewedBy: ""
 
 import Part from '../../components/ModulePart.astro';
 import TodoBlock from '../../components/Todo.astro';
+import GlossaryTerm from '../../components/GlossaryTerm.astro';
+import { formatDue } from '../../lib/modules';
+import { rubricLines } from '../../data/competition';
+
+export const esgAiPoints = rubricLines.find((line) => line.id === 'esg-ai')?.points;
 
 <Part id="why">
-  <TodoBlock title="TODO: Why it matters">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  This is where your research becomes an argument. Up to now you've gathered facts; now you decide what they add up to and defend it. The <GlossaryTerm id="investment-summary">Investment Summary</GlossaryTerm> is often the part judges remember, and one of the rubric's two biggest lines, whether your idea "makes logical sense and follows sound investment principles," is judged mostly here.
+
+  This module also covers three required sections, Risks, <GlossaryTerm id="esg">ESG</GlossaryTerm>, and AI, worth points of their own. ESG and AI considerations together are worth {esgAiPoints} points, and many teams treat them as an afterthought. Don't.
 </Part>
 
 <Part id="learn">
-  <TodoBlock title="TODO: Learn">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  ### The Investment Summary
+
+  The Investment Summary is your whole pitch in under a page. It states:
+
+  - your recommendation (buy, sell, or hold), <GlossaryTerm id="target-price">target price</GlossaryTerm>, and <GlossaryTerm id="upside">upside or downside</GlossaryTerm>
+  - your three thesis pillars, one or two sentences each
+  - the main risk and why you're still confident
+
+  Write it last, after everything else is done, even though it sits near the front of your report.
+
+  ### Thesis pillars
+
+  A <GlossaryTerm id="thesis-pillar">thesis pillar</GlossaryTerm> is one main reason for your recommendation. Three is the usual number: enough to be convincing, few enough to remember. A strong pillar has three parts:
+
+  1. **A claim:** "Membership fees give the company steady, growing income."
+  2. **Evidence:** a number from your research, with its source.
+  3. **Why it matters for the stock:** how it affects future earnings or the P/E the market will pay.
+
+  The best pillars point to something the market may be missing or underrating. If everyone already agrees, it's probably already in the price.
+
+  ### Catalysts
+
+  A <GlossaryTerm id="catalyst">catalyst</GlossaryTerm> is an event that could make the market notice your thesis, such as an earnings report, a product launch, or a new store opening. Name one or two, and say roughly when they'll happen.
+
+  ### Investment Risks
+
+  Every investment can go wrong, and judges trust analysts who say how. For each of your three to five biggest risks:
+
+  - **Describe it specifically.** "Competition" is vague; "Sam's Club cutting prices in Costco's biggest markets" is specific.
+  - **Rate it:** how likely, and how much damage if it happens.
+  - **Name a <GlossaryTerm id="mitigant">mitigant</GlossaryTerm>:** something that reduces the risk or its damage.
+
+  Your <GlossaryTerm id="10-k">10-K</GlossaryTerm>'s Item 1A lists the risks the company itself worries about. Start there, then add any you found yourself. The risk matrix tool helps you rate them.
+
+  ### ESG considerations
+
+  ESG stands for environmental, social, and governance. Analysts ask whether these issues could affect the company's value, not whether the company is "good." Pick the one or two that matter most for your company:
+
+  - **Environmental:** energy use, emissions, waste, climate risks to its operations
+  - **Social:** how it treats employees, customers, and suppliers; product safety; data privacy
+  - **Governance:** how the company is run: its board, executive pay, and shareholder rights
+
+  Find material in the company's <GlossaryTerm id="sustainability-report">sustainability report</GlossaryTerm> and its 10-K. Explain how each issue could help or hurt the business.
+
+  ### AI considerations
+
+  YIS asks every entry: how does the development of artificial intelligence affect opportunity or risk for your company? Cover both sides:
+
+  - **Opportunity:** Could AI lower costs, improve products, or help the company reach customers?
+  - **Risk:** Could AI help competitors, change how customers buy, or make the product less necessary?
+
+  Look for what management says about AI in the 10-K and in <GlossaryTerm id="earnings-call">earnings calls</GlossaryTerm>, and back up each point with evidence.
+
+  A reminder about your own work: you can use AI tools to explain concepts and point you toward sources, but YIS prohibits using AI to write any part of your submission, including this section.
 </Part>
 
 <Part id="see">
-  <TodoBlock title="TODO: See it">
-    Content for this part hasn't been written yet.
+  ### Three thesis pillars for Costco
+
+  The case an analyst arguing for the stock might make:
+
+  <div class="overflow-x-auto" role="region" aria-label="Three thesis pillars for Costco" tabindex="0">
+
+  | Pillar | Evidence (Costco 10-K, fiscal 2026) | Why it matters for the stock |
+  | --- | --- | --- |
+  | Loyal members create steady, growing income | 92.3% renewal rate in the US and Canada; membership fees grew 11.0% to $5.9 billion | Fees are predictable and high-profit, which supports earnings in a weak economy |
+  | Room to keep growing | 939 warehouses at year end, with 28 openings in fiscal 2026, including 3 relocations | Each new warehouse adds sales and members for years |
+  | Strong finances | $20.2 billion in cash against $6.2 billion in debt; EPS up 14.0% | It can keep expanding and paying <GlossaryTerm id="dividend">dividends</GlossaryTerm> without borrowing |
+
+  </div>
+
+  ### Costco's main risks, with mitigants
+
+  <div class="overflow-x-auto" role="region" aria-label="Costco's main risks with mitigants" tabindex="0">
+
+  | Risk | Likelihood | Impact | Mitigant |
+  | --- | --- | --- | --- |
+  | The stock is already expensive: a P/E near 48 (illustrative price) leaves little room if growth slows | Medium | High | Steady earnings growth could "grow into" the price |
+  | Competition from Sam's Club and online retailers like Amazon | Medium | Medium | Scale and member loyalty are hard to copy |
+  | Fewer members renew, cutting fee income | Low | High | Renewal is high: 92.3% in the US and Canada, 89.8% worldwide |
+  | AI shopping tools change how people shop, and rivals adopt AI faster | Medium | Medium | Watch for Costco's own digital and AI investments in earnings calls |
+
+  </div>
+
+  The last three risks come straight from Item 1A of Costco's 10-K. The first comes from the valuation in module 5.
+
+  ### ESG: questions an analyst would ask about Costco
+
+  - **Social:** Costco depends on fast, friendly service in huge warehouses. How does it pay and keep its employees, and how does that affect costs?
+  - **Environmental:** Its warehouses use a lot of energy and its products travel long distances. Are there climate or energy costs that could hurt margins?
+  - **Governance:** Is executive pay tied to long-term results?
+
+  <TodoBlock title="TODO: Finished ESG point">
+    Answer one of these with a sourced fact from Costco's sustainability report or proxy statement, so the example shows a finished ESG point.
   </TodoBlock>
+
+  ### AI: both sides for Costco
+
+  - **Risk (from Costco's 10-K):** AI tools could change shopping habits, intensify competition, or show inaccurate pricing, and some rivals are adopting AI faster.
+  - **Opportunity (to research):** Could AI help Costco manage inventory, set prices, or improve its online shopping? Look for what management says in earnings calls before claiming it.
+
+  ### A sample Investment Summary
+
+  Teaching example only, using the illustrative price from module 5:
+
+  > We rate Costco Wholesale (Nasdaq: COST) a Hold, with a target price of $1,027.80, 2.8% above the current $1,000.00. Costco is an exceptional business: 92.3% of its US and Canadian members renew, membership fees grew 11.0% to $5.9 billion in fiscal 2026, and it holds $20.2 billion in cash against $6.2 billion in debt. However, at 48 times earnings, the market already prices in much of this strength. Our target assumes 10% EPS growth and a P/E of 45. A P/E of 50 would imply 14.2% upside, while 40 would imply 8.6% downside, so the recommendation depends mainly on whether Costco can keep its premium valuation.
+
+  Notice it's short, leads with the recommendation and numbers, gives the strongest evidence, and names the key uncertainty. YIS's first page allows Buy, Sell, or Hold; check your mentor's guidance on which to use.
 </Part>
 
 <Part id="do">
-  <TodoBlock title="TODO: Do it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. **Write your three thesis pillars**, each with a claim, evidence, and why it matters for the stock.
+  2. **Name one or two catalysts** and roughly when they'll happen.
+  3. **List three to five risks** from Item 1A and your own research. Rate each in the risk matrix and add a mitigant.
+  4. **Choose one or two ESG issues** that could affect your company's value, and explain how, with sources.
+  5. **Write your AI section**, covering both an opportunity and a risk, with evidence.
+  6. **Write your Investment Summary last:** recommendation, target price, upside, pillars, and the key risk, in under a page.
+  7. **Put your full report draft together**, with every section so far, and send it to your mentor.
+  8. **Tick off module 6** in your [progress tracker](/learn#progress).
+
+  **Deliverable:** your Investment Summary, Investment Risks, ESG, and AI sections, completing your full report draft. Due by <time datetime={new Date(frontmatter.due).toISOString().slice(0, 10)}>{formatDue(new Date(frontmatter.due))}</time>.
 </Part>
 
 <Part id="check">
-  <TodoBlock title="TODO: Check it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. Does each pillar have a number and a source?
+  2. Does your Investment Summary state the recommendation, target price, and upside in its first two sentences?
+  3. Is each risk specific, rated, and paired with a mitigant?
+  4. Do your ESG points explain how each issue affects the company's value?
+  5. Does your AI section cover both an opportunity and a risk?
+  6. Did you write every word yourself?
+
+  **Common mistakes:** pillars that are just facts with no "so what," vague risks like "the economy," ESG sections that praise the company instead of analyzing it, AI sections with no evidence, and an Investment Summary that buries the recommendation.
 </Part>
