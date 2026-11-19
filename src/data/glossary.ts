@@ -10,9 +10,11 @@ export interface GlossaryEntry {
 }
 
 export const glossary = [
+  { id: 'earnings', term: 'Earnings' },
   { id: 'esg', term: 'ESG' },
   { id: 'exchange', term: 'Exchange' },
   { id: 'investment-summary', term: 'Investment summary' },
+  { id: 'pe-ratio', term: 'Price-to-earnings (P/E) ratio' },
   { id: 'sector', term: 'Sector' },
   { id: 'target-price', term: 'Target price' },
   { id: 'ticker', term: 'Ticker' },

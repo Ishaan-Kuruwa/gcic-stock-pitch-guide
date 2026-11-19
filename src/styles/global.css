@@ -176,8 +176,32 @@
  * these sit in the base layer, so utility classes on an element still win.
  */
 @layer base {
-  .module-part :where(p, ul, ol, details, table) {
+  .module-part :where(p, ul, ol, details, table, blockquote) {
     margin-top: 1rem;
+  }
+
+  .module-part :where(table) {
+    width: 100%;
+    min-width: 32rem;
+    border-collapse: collapse;
+  }
+
+  .module-part :where(th, td) {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--gc-border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .module-part :where(th) {
+    background: var(--gc-tint);
+    font-weight: 700;
+  }
+
+  .module-part :where(blockquote) {
+    border-left: 4px solid var(--gc-highlight);
+    padding-left: 1rem;
+    font-style: italic;
   }
 
   .module-part :where(h3) {
