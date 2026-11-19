@@ -14,33 +14,119 @@ reviewedBy: ""
 
 import Part from '../../components/ModulePart.astro';
 import TodoBlock from '../../components/Todo.astro';
+import GlossaryTerm from '../../components/GlossaryTerm.astro';
+import { formatDue } from '../../lib/modules';
 
 <Part id="why">
-  <TodoBlock title="TODO: Why it matters">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  No company exists alone. A great business in a shrinking industry can still struggle, and an average one in a booming industry can do well. Judges want to see that you understand the world your company competes in, not just the company.
+
+  This module also answers the most important question in investing: what stops competitors from taking this company's customers? If you can answer that clearly, you've found the heart of your pitch.
 </Part>
 
 <Part id="learn">
-  <TodoBlock title="TODO: Learn">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  ### Describe the industry
+
+  Start with the big picture. Answer three questions:
+
+  1. **How big is the industry, and is it growing or shrinking?** Give a number and a source.
+  2. **What trends are changing it?** Think about technology, how customers shop, prices, rules and laws, and who's entering or leaving.
+  3. **What makes a company win in this industry?** Lowest price? Best product? Biggest network? Strongest brand?
+
+  Good sources: the Competition section of your company's <GlossaryTerm id="10-k">10-K</GlossaryTerm>, its competitors' 10-Ks, government statistics like the US Census Bureau's retail data for retail companies, and industry coverage in reliable news outlets. Avoid paid "market research" summaries with no clear source.
+
+  ### Name the competitors
+
+  List three to five main competitors, and include companies that compete for the same customer in a different way. A streaming service competes with other streaming services, but also with video games and social media for people's free time.
+
+  For each competitor, note how it competes differently: cheaper, bigger, more specialized, or online instead of in stores.
+
+  ### Competitive advantage: the "moat"
+
+  A <GlossaryTerm id="moat">moat</GlossaryTerm> is something that protects a company's profits from competitors, the way a moat protects a castle. These are the five most common kinds:
+
+  <div class="overflow-x-auto" role="region" aria-label="The five most common kinds of moat" tabindex="0">
+
+  | Moat | What it means | Example question to ask |
+  | --- | --- | --- |
+  | Brand | Customers trust it or want it, and will pay more | Would customers switch if a rival were slightly cheaper? |
+  | Scale | Being bigger makes it cheaper to operate | Can a smaller rival match its prices and still profit? |
+  | <GlossaryTerm id="network-effects">Network effects</GlossaryTerm> | The product gets better as more people use it | Does each new user make it more valuable for others? |
+  | <GlossaryTerm id="switching-costs">Switching costs</GlossaryTerm> | It's expensive or annoying for customers to leave | What would a customer lose by switching? |
+  | Cost advantage | It can make or deliver things more cheaply than anyone else | Why are its costs lower, and can that be copied? |
+
+  </div>
+
+  Most strong companies have one or two moats, not five. Don't claim a moat without evidence. A number, like a high renewal rate or a falling cost per unit, beats an adjective every time.
+
+  ### What goes in your Industry Overview and Competitive Positioning
+
+  About one page:
+
+  - The industry's size, growth, and two or three key trends, with sources
+  - The main competitors and how each one competes
+  - Where your company fits: what it does better or worse than rivals
+  - Its moat, with evidence, or an honest note that it doesn't have a strong one
 </Part>
 
 <Part id="see">
-  <TodoBlock title="TODO: See it">
-    Content for this part hasn't been written yet.
+  ### Costco's competitors, and how each competes
+
+  <div class="overflow-x-auto" role="region" aria-label="Costco's competitors and how each competes" tabindex="0">
+
+  | Competitor | How it competes with Costco |
+  | --- | --- |
+  | Sam's Club (owned by Walmart) | Also a membership warehouse club; the most direct rival |
+  | BJ's Wholesale Club | A smaller membership warehouse club, mostly in the eastern US |
+  | Walmart | Low prices with no membership, and many more stores |
+  | Amazon | Online shopping with fast delivery, plus its Prime membership |
+  | Grocery chains and Target | Closer to home, smaller package sizes, no membership |
+
+  </div>
+
+  ### Costco's moats, with evidence
+
+  <div class="overflow-x-auto" role="region" aria-label="Costco's moats with evidence" tabindex="0">
+
+  | Moat | Evidence | Source |
+  | --- | --- | --- |
+  | Scale | 939 warehouses and $297.2 billion in <GlossaryTerm id="net-sales">net sales</GlossaryTerm> let Costco buy in huge volumes and keep its <GlossaryTerm id="gross-margin">gross margin</GlossaryTerm> at about 11% of net sales, far below most retailers | Costco 10-K, fiscal 2026 |
+  | Switching costs and loyalty | 92.3% of members in the US and Canada renewed. Once you've paid the fee, you have a reason to keep shopping there | Costco 10-K, fiscal 2026 |
+
+  </div>
+
+  ### A sample paragraph on competitive positioning
+
+  > Costco's main advantage is scale. With $297.2 billion in net sales in fiscal 2026, it can buy in enormous volumes and still profit while keeping its gross margin at just 11.09% of net sales, which its 10-K describes as "significantly lower" than most other retailers. Membership fees reinforce this: members who have paid a yearly fee have a reason to keep coming back, and 92.3% of members in the US and Canada renewed in fiscal 2026. The biggest competitive threats are Sam's Club, which copies the same model, and online retailers like Amazon. Costco's 10-K also warns that AI shopping tools could change how people shop and help rivals compete.
+
+  Notice the pattern: a claim, then a number that proves it, then a source. It also names the threats honestly, instead of pretending the company has none.
+
+  <TodoBlock title="TODO: Industry-size figure">
+    Add one industry-size figure with its source and date, for example total US retail sales from the Census Bureau, so the example shows how to open the section with the big picture.
+  </TodoBlock>
+
+  <TodoBlock title="TODO: Recheck competitors and figures">
+    For reviewers: The competitor descriptions are general knowledge; please confirm them. Figures are from Costco's 10-K for fiscal 2026.
   </TodoBlock>
 </Part>
 
 <Part id="do">
-  <TodoBlock title="TODO: Do it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. **Read the Competition part of your company's 10-K** (usually in Item 1). Write down every competitor it names.
+  2. **Find one number for the industry's size and one for its growth**, each with a source and date.
+  3. **List two or three trends** changing the industry.
+  4. **Build a competitor table** like the one in See it, with three to five rivals and how each competes.
+  5. **Choose your company's moat**, or decide it doesn't have a strong one. Find at least one number as evidence.
+  6. **Draft your Industry Overview and Competitive Positioning section**, about a page, with a source for every number.
+  7. **Tick off module 3** in your [progress tracker](/learn#progress) and share the draft with your mentor.
+
+  **Deliverable:** your Industry Overview and Competitive Positioning draft. Due by <time datetime={new Date(frontmatter.due).toISOString().slice(0, 10)}>{formatDue(new Date(frontmatter.due))}</time>.
 </Part>
 
 <Part id="check">
-  <TodoBlock title="TODO: Check it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. Does your draft give the industry's size and growth, with sources?
+  2. Have you named at least three competitors, and how each one competes?
+  3. Is your company's moat backed by a number, not just an adjective?
+  4. Have you named at least one real competitive threat?
+  5. Could a judge tell, from this section alone, why customers choose your company over its rivals?
+
+  **Common mistakes:** listing competitors without comparing them, claiming a moat with no evidence, using an industry number with no source or date, and ignoring new kinds of competitors, like online rivals for a store-based business.
 </Part>
