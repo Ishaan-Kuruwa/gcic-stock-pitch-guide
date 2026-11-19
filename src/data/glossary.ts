@@ -13,8 +13,10 @@ export const glossary = [
   { id: '10-k', term: '10-K' },
   { id: 'balance-sheet', term: 'Balance sheet' },
   { id: 'cash-flow-statement', term: 'Cash flow statement' },
+  { id: 'comparable-companies', term: 'Comparable companies (comps)' },
   { id: 'diluted-eps', term: 'Diluted EPS' },
   { id: 'earnings', term: 'Earnings' },
+  { id: 'earnings-call', term: 'Earnings call' },
   { id: 'earnings-release', term: 'Earnings press release' },
   { id: 'eps', term: 'Earnings per share (EPS)' },
   { id: 'esg', term: 'ESG' },
@@ -35,9 +37,11 @@ export const glossary = [
   { id: 'sec', term: 'Securities and Exchange Commission (SEC)' },
   { id: 'sector', term: 'Sector' },
   { id: 'segment', term: 'Segment' },
+  { id: 'sensitivity-table', term: 'Sensitivity table' },
   { id: 'switching-costs', term: 'Switching costs' },
   { id: 'target-price', term: 'Target price' },
   { id: 'ticker', term: 'Ticker' },
+  { id: 'upside', term: 'Upside and downside' },
   { id: 'valuation', term: 'Valuation' },
 ] as const satisfies readonly GlossaryEntry[];
 
