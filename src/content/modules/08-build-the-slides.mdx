@@ -16,33 +16,129 @@ reviewedBy: ""
 
 import Part from '../../components/ModulePart.astro';
 import TodoBlock from '../../components/Todo.astro';
+import GlossaryTerm from '../../components/GlossaryTerm.astro';
+import { formatDue } from '../../lib/modules';
+import { categoryPoints } from '../../lib/facts';
+import {
+  fileNames,
+  firstPageFields,
+  limits,
+  requiredSections,
+} from '../../data/competition';
+
+export const slidesFileName = fileNames.find((f) => f.item === 'slides')?.pattern;
 
 <Part id="why">
-  <TodoBlock title="TODO: Why it matters">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  The presentation is worth {categoryPoints('presentation')} points on its own, and your slides also appear in your video, which is worth another {categoryPoints('video')}. That's half your score riding on how well you present, not just what you found.
+
+  The biggest presentation line in the rubric asks whether you "use bullets and elaborate on those topics." Your slides should give judges the key points at a glance, while you supply the explanation out loud. Slides packed with paragraphs fail at both.
 </Part>
 
 <Part id="learn">
-  <TodoBlock title="TODO: Learn">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  ### The deck is a summary of your report
+
+  Your slides cover the same argument as your report, in the same order, with fewer words. Don't add new analysis here; if something's important, it belongs in the report too.
+
+  ### What every deck must include
+
+  The title slide carries the same information as your report's first page:
+
+  <ul>
+    {firstPageFields.map((field) => <li>{field.label}</li>)}
+  </ul>
+
+  The deck must also cover every required section:
+
+  <ol>
+    {requiredSections.map((section) => (
+      <li>{section.label}{section.detail ? `: ${section.detail}` : ''}</li>
+    ))}
+  </ol>
+
+  ### How many slides?
+
+  Your video has to be under {limits.videoMaxMinutes} minutes, and you'll present these slides in it. Plan on about 12 to 15 slides: one for the title, one for your recommendation, roughly one for each required section, and one to close. Fewer, stronger slides beat many rushed ones.
+
+  ### Bullets you can talk to
+
+  - **Three to five bullets per slide**, each a short phrase, not a full sentence
+  - **One idea per slide:** the slide title should state the point, like "Members keep coming back," not just "Membership"
+  - **Elaborate out loud:** each bullet is a prompt for what you'll say, not a script to read
+  - **Big text:** if it's too small to read on a phone screen in your video, it's too small
+
+  ### Show numbers as visuals
+
+  YIS asks you to use slides as a visual for financial information, like charts and graphs. Turn your key numbers into a simple chart: a bar chart for revenue over time, a table for your valuation math, a pie chart for a revenue breakdown. Give each chart a clear title and a source line.
+
+  ### Keep the design simple
+
+  Use one template, two fonts at most, and the same colors throughout. Plain backgrounds make charts easier to read. Avoid animations and transitions; they don't help in a recorded video.
+
+  ### File format
+
+  YIS accepts PowerPoint or PDF, and does not accept Keynote. If you build in Google Slides, download it as a PowerPoint file (File, then Download, then Microsoft PowerPoint) and open it once to check nothing moved. Name it <code class="[overflow-wrap:anywhere]">{slidesFileName}</code>.
 </Part>
 
 <Part id="see">
-  <TodoBlock title="TODO: See it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  ### A 13-slide outline for the Costco example
+
+  Each slide title states its point. The right column shows what's on the slide; the explanation is what you say out loud.
+
+  <div class="overflow-x-auto" role="region" aria-label="A 13-slide outline for the Costco example" tabindex="0">
+
+  | # | Slide title | On the slide |
+  | --- | --- | --- |
+  | 1 | Costco Wholesale (Nasdaq: COST) | Every first-page field: names, school, state, emails, <GlossaryTerm id="sector">sector</GlossaryTerm>, recommendation, dated price, <GlossaryTerm id="target-price">target price</GlossaryTerm> with percent |
+  | 2 | Hold: target $1,027.80, 2.8% upside | Recommendation, target, upside, and the three pillars as one line each |
+  | 3 | Costco sells in bulk to paying members | Two revenue sources with a simple bar or pie: net sales $297.2B, membership fees $5.9B |
+  | 4 | 939 warehouses in three regions | Warehouse counts by region; 84.1M paid members |
+  | 5 | A huge industry with strong rivals | Industry size, plus a short competitor table |
+  | 6 | Scale and loyalty are Costco's moat | <GlossaryTerm id="gross-margin">Gross margin</GlossaryTerm> 11.09%; renewal rate 92.3% |
+  | 7 | Sales and profits are growing | Bar chart of revenue, fiscal 2024 to 2026 |
+  | 8 | Profit is growing faster than sales | <GlossaryTerm id="operating-margin">Operating margin</GlossaryTerm> and EPS growth table |
+  | 9 | Valuation: P/E-based target | The three formula lines with numbers |
+  | 10 | The answer depends on the P/E | <GlossaryTerm id="sensitivity-table">Sensitivity table</GlossaryTerm>: P/E 40, 45, 50 |
+  | 11 | Key risks and how they're limited | Risk table: risk, likelihood, impact, <GlossaryTerm id="mitigant">mitigant</GlossaryTerm> |
+  | 12 | ESG and AI | One <GlossaryTerm id="esg">ESG</GlossaryTerm> point and one AI opportunity and risk, each sourced |
+  | 13 | Recap: Hold at $1,027.80 | The recommendation and pillars again, plus the key thing to watch |
+
+  </div>
+
+  ### Same slide, two ways
+
+  <div class="overflow-x-auto" role="region" aria-label="The same slide with too much text and with bullets" tabindex="0">
+
+  | Too much text | Bullets you can talk to |
+  | --- | --- |
+  | "Costco has a membership model where customers pay an annual fee to shop at its warehouses, and in fiscal 2026 the renewal rate in the US and Canada was 92.3%, which shows that members are very loyal and keep coming back year after year." | **Members keep coming back**<br />• 92.3% renewal (US and Canada)<br />• Fees: $5.9B, up 11.0%<br />• Source: Costco 10-K, FY2026 |
+
+  </div>
+
+  On the right, the slide gives the facts and you say the "why" out loud. That's exactly what the rubric's bullets line rewards.
 </Part>
 
 <Part id="do">
-  <TodoBlock title="TODO: Do it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. **Open the GHIC slide template.**
+  2. **Plan your slides in a list first**, one point per slide, following your report's order.
+  3. **Build the title slide** with every required field.
+  4. **Write a point-stating title for each slide**, then three to five short bullets.
+  5. **Turn your key numbers into charts or tables**, each with a title and source.
+  6. **Check that every required section** appears somewhere in the deck.
+  7. **Practice talking through it once out loud.** Cut or split any slide you can't explain in about 30 to 60 seconds.
+  8. **Download it as PowerPoint**, named <code class="[overflow-wrap:anywhere]">{slidesFileName}</code>, and open it to check the layout.
+  9. **Tick off module 8** in your [progress tracker](/learn#progress) and send the deck to your mentor.
+
+  **Deliverable:** your complete slide deck. Due by <time datetime={new Date(frontmatter.due).toISOString().slice(0, 10)}>{formatDue(new Date(frontmatter.due))}</time>.
 </Part>
 
 <Part id="check">
-  <TodoBlock title="TODO: Check it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. Does the title slide have every first-page field, with a dated price?
+  2. Is every required section covered?
+  3. Does every slide title state a point?
+  4. Are there five or fewer short bullets on every slide?
+  5. Are your key numbers shown as charts or tables, with sources?
+  6. Do the numbers match your report exactly?
+  7. Is it saved as PowerPoint or PDF, not Keynote, with the correct name?
+
+  **Common mistakes:** pasting paragraphs from the report onto slides, tiny text, charts without titles or sources, numbers that don't match the report, and leaving the ESG or AI section out of the deck.
 </Part>

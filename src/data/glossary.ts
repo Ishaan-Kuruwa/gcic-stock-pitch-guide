@@ -36,6 +36,7 @@ export const glossary = [
   { id: 'net-sales', term: 'Net sales' },
   { id: 'network-effects', term: 'Network effects' },
   { id: 'operating-income', term: 'Operating income' },
+  { id: 'operating-margin', term: 'Operating margin' },
   { id: 'pe-ratio', term: 'Price-to-earnings (P/E) ratio' },
   { id: 'revenue', term: 'Revenue' },
   { id: 'sec', term: 'Securities and Exchange Commission (SEC)' },
