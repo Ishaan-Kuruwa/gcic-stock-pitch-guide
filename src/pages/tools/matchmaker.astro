@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Matchmaker from '../../components/Matchmaker.tsx';
+import { eyebrow, fadeUp } from '../../lib/styles';
+---
+
+<BaseLayout
+  title="Stock Matchmaker"
+  description="Pick what you're into and get a list of public companies to start researching for your pitch."
+>
+  <header class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}><a href="/tools" class="text-muted">Tools</a></p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">Stock Matchmaker</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      You already use a company worth pitching. Start with what you actually spend time and money on:
+      pick up to three interests and get a few public companies to look into.
+    </p>
+    <p class="mt-3 text-sm text-muted">
+      Companies here are starting points for research, not investment advice.
+    </p>
+  </header>
+
+  <div class="mt-10">
+    <Matchmaker client:visible />
+  </div>
+</BaseLayout>

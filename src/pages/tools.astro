@@ -1,15 +1,43 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Todo from '../components/Todo.astro';
-import { fadeUp } from '../lib/styles';
+import { card, fadeDelay, fadeUp, focus, lift } from '../lib/styles';
+
+const tools = [
+  {
+    href: '/tools/matchmaker',
+    title: 'Stock Matchmaker',
+    description: "Pick what you're into and get companies to start researching. Save a shortlist to share.",
+  },
+];
 ---
 
 <BaseLayout title="Tools">
-  <div class:list={['max-w-prose', fadeUp]}>
+  <header class:list={['max-w-prose', fadeUp]}>
     <h1 class="text-5xl font-black sm:text-6xl">Tools</h1>
-    <div aria-hidden="true" class="decorative mt-5 mb-8 h-1.5 w-20 rounded-full bg-highlight"></div>
-    <Todo title="Tools coming soon">
-      <p>The tools haven't been added yet. In the meantime, read the <a href="/rules">rules</a>.</p>
-    </Todo>
-  </div>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      Tools help you find, calculate, organize, and check. They never write for you: everything you
+      submit has to be your own work. See the <a href="/rules">rules</a>.
+    </p>
+  </header>
+
+  <ul class="mt-10 grid max-w-4xl gap-4 sm:grid-cols-2">
+    {
+      tools.map((tool, index) => (
+        <li class={fadeUp} style={fadeDelay(index + 1)}>
+          <article class:list={['relative h-full', card, lift]}>
+            <h2 class="text-3xl font-extrabold">
+              <a
+                href={tool.href}
+                class:list={['text-text no-underline after:absolute after:inset-0 after:rounded-xl', focus]}
+              >
+                {tool.title}
+              </a>
+            </h2>
+            <p class="mt-2 text-muted">{tool.description}</p>
+          </article>
+        </li>
+      ))
+    }
+  </ul>
 </BaseLayout>
