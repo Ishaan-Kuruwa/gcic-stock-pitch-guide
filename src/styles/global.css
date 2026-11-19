@@ -345,4 +345,11 @@
   }
 }
 
+/* KaTeX formulas in modules: scroll sideways instead of overflowing at 360px. */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.25rem;
+}
+
 /* Print styles live in print.css, imported after this file by BaseLayout. */

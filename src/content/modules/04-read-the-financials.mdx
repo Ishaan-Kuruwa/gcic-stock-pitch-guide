@@ -14,33 +14,138 @@ reviewedBy: ""
 
 import Part from '../../components/ModulePart.astro';
 import TodoBlock from '../../components/Todo.astro';
+import GlossaryTerm from '../../components/GlossaryTerm.astro';
+import { formatDue } from '../../lib/modules';
 
 <Part id="why">
-  <TodoBlock title="TODO: Why it matters">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  Numbers turn your story into evidence. Saying "the company is growing" is an opinion; saying "revenue grew 10% last year" is a fact a judge can check. Sound financial analysis is worth points in both the report and the presentation.
+
+  You don't need to be a math expert. You need a handful of numbers, the trend in each one, and a sentence about what that trend means. This module shows you which numbers matter and how to read them.
 </Part>
 
 <Part id="learn">
-  <TodoBlock title="TODO: Learn">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  ### Where the numbers live
+
+  The financial statements are in Item 8 of the <GlossaryTerm id="10-k">10-K</GlossaryTerm>. Most companies also post an <GlossaryTerm id="earnings-release">earnings press release</GlossaryTerm> each quarter with the key numbers on the first page. Always use at least three years so you can see a trend; the 10-K shows two or three years side by side.
+
+  ### The income statement: five lines that matter most
+
+  The <GlossaryTerm id="income-statement">income statement</GlossaryTerm> shows money coming in and going out over a year, from the top line (revenue) to the bottom line (profit).
+
+  <div class="overflow-x-auto" role="region" aria-label="Five income statement lines that matter most" tabindex="0">
+
+  | Line | What it tells you |
+  | --- | --- |
+  | <GlossaryTerm id="revenue">Revenue</GlossaryTerm> | Everything the company earned from customers. Also called sales or the "top line." |
+  | <GlossaryTerm id="gross-margin">Gross margin</GlossaryTerm> | What's left after the direct cost of the products sold, as a percent of revenue. Shows pricing power. |
+  | <GlossaryTerm id="operating-income">Operating income</GlossaryTerm> | Profit from running the business, before interest and taxes. |
+  | <GlossaryTerm id="net-income">Net income</GlossaryTerm> | Profit after everything, including interest and taxes. The "bottom line." |
+  | <GlossaryTerm id="eps">Earnings per share (EPS)</GlossaryTerm> | Net income divided by the number of shares. This is the number your valuation uses in module 5. |
+
+  </div>
+
+  Use <GlossaryTerm id="diluted-eps">diluted EPS</GlossaryTerm>, which counts shares that could be created from things like stock options. It's the standard figure analysts use.
+
+  ### Two calculations you'll use constantly
+
+  **Growth rate:** how much something changed from one year to the next.
+
+  $$
+  \text{Growth} = \frac{\text{This year} - \text{Last year}}{\text{Last year}}
+  $$
+
+  **Margin:** how much of each dollar of revenue becomes profit.
+
+  $$
+  \text{Operating margin} = \frac{\text{Operating income}}{\text{Revenue}}
+  $$
+
+  A company can grow revenue while its margins shrink, which means it's earning less on each sale. Always look at both.
+
+  Some companies define a figure in their own way. Read the label carefully, and if your company calculates something differently from the standard, say so.
+
+  ### The balance sheet: can it survive a bad year?
+
+  The <GlossaryTerm id="balance-sheet">balance sheet</GlossaryTerm> is a snapshot of what the company owns and owes on one day. For a first pitch, check three things:
+
+  - **Cash:** money available right now
+  - **Debt:** money it has borrowed and must repay
+  - **Cash compared with debt:** more cash than debt means a company can handle a rough patch; lots of debt and little cash is a risk worth naming
+
+  ### Turning numbers into observations
+
+  A table of numbers isn't analysis. For each important trend, write one sentence that says what happened, by how much, and why it matters. Use Item 7 (<GlossaryTerm id="mdna">Management's Discussion and Analysis</GlossaryTerm>) to find out why the numbers changed.
 </Part>
 
 <Part id="see">
-  <TodoBlock title="TODO: See it">
-    Content for this part hasn't been written yet.
+  ### Costco's key financials, fiscal 2024 to 2026
+
+  Costco's <GlossaryTerm id="fiscal-year">fiscal year</GlossaryTerm> ends on the Sunday nearest the end of August; fiscal 2026 ran from September 2025 to August 30, 2026. Dollar amounts are in billions, except EPS.
+
+  <div class="overflow-x-auto" role="region" aria-label="Costco income statement figures, fiscal 2024 to 2026" tabindex="0">
+
+  | | Fiscal 2024 | Fiscal 2025 | Fiscal 2026 |
+  | --- | --- | --- | --- |
+  | Total revenue | $254.5B | $275.2B | $303.2B |
+  | Revenue growth | | 8.2% | 10.1% |
+  | Membership fees | $4.8B | $5.3B | $5.9B |
+  | Gross margin (% of net sales) | 10.92% | 11.12% | 11.09% |
+  | Operating income | $9.3B | $10.4B | $11.7B |
+  | Operating margin | 3.6% | 3.8% | 3.9% |
+  | Net income | $7.4B | $8.1B | $9.2B |
+  | Diluted EPS | $16.56 | $18.21 | $20.76 |
+  | EPS growth | | 10.0% | 14.0% |
+
+  </div>
+
+  <div class="overflow-x-auto" role="region" aria-label="Costco balance sheet figures" tabindex="0">
+
+  | Balance sheet | Aug 31, 2025 | Aug 30, 2026 |
+  | --- | --- | --- |
+  | Cash and cash equivalents | $14.2B | $20.2B |
+  | Total debt | $5.8B | $6.2B |
+
+  </div>
+
+  Source: Costco 10-K for fiscal 2026. Total revenue is <GlossaryTerm id="net-sales">net sales</GlossaryTerm> plus membership fees. Costco calculates gross margin on net sales only, not total revenue, so that row follows the company's own definition.
+
+  ### Three sample observations
+
+  > 1. **Growth sped up.** Total revenue grew 10.1% in fiscal 2026, faster than the 8.2% growth the year before.
+  > 2. **Profit grew faster than sales.** Diluted EPS rose 14.0% while revenue rose 10.1%, and operating margin edged up from 3.6% in fiscal 2024 to 3.9% in fiscal 2026. Costco is keeping a little more of each dollar it earns.
+  > 3. **Membership fees punch above their weight.** Fees were only about 2% of total revenue, but at $5.9 billion they equaled about half of Costco's $11.7 billion operating income. Because Costco sells goods at such thin margins, fee income does a lot to support its profits.
+
+  Notice that each observation gives a number, a comparison, and what it means. The third one is the kind of insight judges look for: something you only see by putting two numbers side by side.
+
+  <TodoBlock title="TODO: Recheck Costco figures">
+    For reviewers: Please recheck each figure against the fiscal 2026 10-K. Growth rates and margins were calculated from the 10-K's figures in millions, then rounded.
   </TodoBlock>
 </Part>
 
 <Part id="do">
-  <TodoBlock title="TODO: Do it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. **Open the financials template** and enter at least three years of your company's numbers from its 10-K: revenue, gross profit or gross margin, operating income, net income, and diluted EPS.
+  2. **Add cash and total debt** from the two most recent balance sheets.
+  3. **Calculate growth rates and margins.** The template does this for you; check one by hand so you know how it works.
+  4. **Read Item 7 (MD&A)** to find out why the biggest numbers changed.
+  5. **Write three observations**, each with a number, a comparison, and what it means.
+  6. **Tick off module 4** in your [progress tracker](/learn#progress) and share your table and observations with your mentor.
+
+  **Deliverable:** your financials table and three written observations. Due by <time datetime={new Date(frontmatter.due).toISOString().slice(0, 10)}>{formatDue(new Date(frontmatter.due))}</time>.
 </Part>
 
 <Part id="check">
-  <TodoBlock title="TODO: Check it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. Does your table cover at least three years, labeled by fiscal year?
+  2. Did you use diluted EPS?
+  3. Can you explain the difference between revenue and net income in one sentence?
+  4. Does each observation include a number and say why it matters?
+  5. Do you know whether your company has more cash or more debt?
+
+  <details data-animate class="mt-4">
+  <summary>Show answers</summary>
+
+  3. Revenue is everything customers paid the company; net income is what's left after every cost, interest, and taxes.
+
+  </details>
+
+  **Common mistakes:** mixing up fiscal and calendar years, using basic EPS instead of diluted, comparing numbers in different units (millions versus billions), and listing numbers without saying what they mean.
 </Part>
