@@ -55,7 +55,8 @@ UI text is plain and friendly. Any finance term links to the glossary.
   `tint` (sage panels, number badges), `text`, `muted`, `accent` (pine: links,
   primary buttons), `accent-strong` (hover), `accent-contrast` (text on accent),
   `highlight` (foil: accent bars, current-page marker; a fill, never text on bg),
-  `highlight-contrast`, `border`, `focus`. Any new pair must meet WCAG AA
+  `highlight-contrast`, `border`, `focus`, `danger` and `danger-contrast` (errors,
+  always with words, never color alone). Any new pair must meet WCAG AA
   (4.5:1 text, 3:1 focus rings and UI). The focus ring is pine in light mode and
   foil in dark mode.
 - Patterns: shared class strings live in src/lib/styles.ts (`card`, `lift`,
