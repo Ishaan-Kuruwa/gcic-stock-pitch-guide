@@ -196,6 +196,36 @@ export const contentRules = [
   'Written as an independent research analyst.',
 ] as const;
 
+export interface OfficialGuidance {
+  source: { url: string; /** YYYY-MM-DD. */ checked: string };
+  /** How YIS phrases its stance on the report template, as a verb phrase. */
+  reportTemplate: string;
+  videoEditing: { required: boolean; recommended: boolean };
+  slides: {
+    bulletPoints: boolean;
+    /** Kinds of visuals YIS names for showing financial analysis. */
+    financialVisuals: readonly string[];
+  };
+  /** Months the video link must stay viewable (judging runs through `through`). */
+  videoViewable: { from: string; through: string; note?: string };
+}
+
+/** YIS guidance (not scored rules) from the guidelines page. */
+export const guidance = {
+  source: {
+    url: 'https://yis.org/programs/stock-pitch-competition/stock-pitch-report/',
+    checked: '2026-11-19',
+  },
+  reportTemplate: 'strongly encourages',
+  videoEditing: { required: false, recommended: false },
+  slides: { bulletPoints: true, financialVisuals: ['charts', 'graphs'] },
+  videoViewable: {
+    from: 'February',
+    through: 'May',
+    note: 'YIS\'s page says "May 2026", a typo for this cycle.',
+  },
+} as const satisfies OfficialGuidance;
+
 export const rubricCategories = [
   { id: 'investment-idea', label: 'Investment Idea', points: 50 },
   { id: 'presentation', label: 'Presentation', points: 25 },

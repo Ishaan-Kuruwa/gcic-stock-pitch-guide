@@ -12,34 +12,119 @@ reviewedBy: ""
 ---
 
 import Part from '../../components/ModulePart.astro';
-import TodoBlock from '../../components/Todo.astro';
+import { formatDue } from '../../lib/modules';
+import { formatDate } from '../../lib/format';
+import { deadline, fileNames, registration, submission } from '../../data/competition';
+import { targetSubmitDate } from '../../data/club';
+
+export const reportFileName = fileNames.find((f) => f.item === 'report')?.pattern;
+export const slidesFileName = fileNames.find((f) => f.item === 'slides')?.pattern;
+export const email = <a href={`mailto:${submission.email}`}>{submission.email}</a>;
+export const target = <time datetime={targetSubmitDate}>{formatDate(targetSubmitDate)}</time>;
+export const regCloses = <time datetime={registration.closes.date}>{formatDate(registration.closes.date)}</time>;
 
 <Part id="why">
-  <TodoBlock title="TODO: Why it matters">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  Two months of work comes down to one email. YIS accepts no late submissions, and a missing attachment, a link judges can't open, or a file that needs permission can mean your entry isn't reviewed at all.
+
+  This module is short on purpose: it's a checklist. Follow it exactly, submit early, and you're done.
 </Part>
 
 <Part id="learn">
-  <TodoBlock title="TODO: Learn">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  ### One email, three items
+
+  Everything goes in one email to {email} by {deadline.display}:
+
+  1. **Your report** as a PDF attachment, named <code class="[overflow-wrap:anywhere]">{reportFileName}</code>
+  2. **Your slides** as a PowerPoint or PDF attachment, named <code class="[overflow-wrap:anywhere]">{slidesFileName}</code>
+  3. **Your YouTube link**, pasted into the email
+
+  GHIC's target is {target}, two days early, so a problem never costs you your entry.
+
+  ### Attachments, not links
+
+  YIS doesn't accept Google Drive links, and it won't review files that need permission to open. Attach the actual files.
+
+  Watch out for large files. Gmail turns attachments over 25 MB into Drive links automatically, which YIS won't accept. If your slides are too big, export them as a PDF, which is allowed and usually much smaller, or compress the images in your deck.
+
+  ### What goes in the email body
+
+  - Each student's name
+  - Each student's email address
+  - Your school
+  - Your state
+  - Your YouTube link
+
+  Copy your partner on the email.
+
+  ### Before you hit send
+
+  - **Registration:** every teammate must be registered on {registration.via} by {regCloses}.
+  - **Open each attachment** from the email draft itself to check it's the right, final version.
+  - **Test the YouTube link** in a private, signed-out browser window.
+  - **Double-check the address:** {email}.
+
+  ### After you send
+
+  Check your Sent folder to confirm the email went out with both attachments. Forward a copy to your mentor, then tick off your last module. You're done.
 </Part>
 
 <Part id="see">
-  <TodoBlock title="TODO: See it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  ### A correct submission email
+
+  Fictional students:
+
+  <blockquote class="[overflow-wrap:anywhere]">
+    <p>
+      **To:** {submission.email}<br />
+      **Cc:** sam.patel@example.com<br />
+      **Subject:** Stock Pitch Submission: Lee and Patel, Green Hope High School, North Carolina
+    </p>
+    <p>Hello,</p>
+    <p>Please find our stock pitch submission for Costco Wholesale (Nasdaq: COST) attached.</p>
+    <p>
+      Names: Jordan Lee and Sam Patel<br />
+      Emails: jordan.lee@example.com, sam.patel@example.com<br />
+      School: Green Hope High School<br />
+      State: North Carolina<br />
+      YouTube video: {'https://youtu.be/[your video ID]'}
+    </p>
+    <p>
+      Thank you,<br />
+      Jordan Lee and Sam Patel
+    </p>
+    <p>
+      **Attachments:**<br />
+      Lee Patel, Green Hope High School, North Carolina, REPORT.pdf<br />
+      Lee Patel, Green Hope High School, North Carolina, SLIDES.pptx
+    </p>
+  </blockquote>
+
+  Notice: one email, both files attached (not linked), every required detail in the body, the partner copied, and file names that follow YIS's pattern. YIS doesn't set a subject line, so a clear one like this helps.
 </Part>
 
 <Part id="do">
-  <TodoBlock title="TODO: Do it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. **Confirm every teammate is registered** on {registration.via}.
+  2. **Gather your final files:** the report PDF and the slides, correctly named.
+  3. **Check the slides' file size.** If it's over 25 MB, export them as a PDF instead.
+  4. **Write the email** using the example above, and copy your partner.
+  5. **Open each attachment from the draft** to confirm it's the final version.
+  6. **Test the YouTube link** in a private, signed-out window.
+  7. **Send it by {target}.**
+  8. **Check your Sent folder**, forward a copy to your mentor, and tick off module 10 in your [progress tracker](/learn#progress).
+
+  **Deliverable:** your submission, sent. Due by <time datetime={new Date(frontmatter.due).toISOString().slice(0, 10)}>{formatDue(new Date(frontmatter.due))}</time>, but aim for {target}.
 </Part>
 
 <Part id="check">
-  <TodoBlock title="TODO: Check it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  - One email to {email}
+  - Report attached as a PDF, named correctly
+  - Slides attached as PowerPoint or PDF (not Keynote), named correctly
+  - No Google Drive links, and no files that need permission
+  - YouTube link in the email, tested while signed out
+  - Names, emails, school, and state in the email body
+  - Partner copied
+  - Every teammate registered
+  - Sent before {deadline.display}, ideally by {target}
+
+  **Common mistakes:** sending the report and slides in separate emails, attachments Gmail quietly turned into Drive links, a Private YouTube video, attaching an old draft, and waiting until the last night.
 </Part>

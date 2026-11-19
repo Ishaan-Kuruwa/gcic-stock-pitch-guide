@@ -345,4 +345,18 @@
   }
 }
 
+/* KaTeX formulas in modules: scroll sideways instead of overflowing at 360px. */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.25rem;
+}
+
+/* KaTeX defaults to 1.21em; on phones, body size keeps most formulas on screen. */
+@media (max-width: 30rem) {
+  .katex-display > .katex {
+    font-size: 1em;
+  }
+}
+
 /* Print styles live in print.css, imported after this file by BaseLayout. */

@@ -13,33 +13,161 @@ reviewedBy: ""
 
 import Part from '../../components/ModulePart.astro';
 import TodoBlock from '../../components/Todo.astro';
+import GlossaryTerm from '../../components/GlossaryTerm.astro';
+import { formatDue } from '../../lib/modules';
+import {
+  fileNames,
+  firstPageFields,
+  guidance,
+  limits,
+  officialLinks,
+  requiredSections,
+} from '../../data/competition';
+
+export const reportTemplateUrl = officialLinks.find((link) => link.id === 'report-template')?.url;
+export const reportFileName = fileNames.find((f) => f.item === 'report')?.pattern;
 
 <Part id="why">
-  <TodoBlock title="TODO: Why it matters">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  Your analysis is done; now make it easy for a judge to see. Judges read many reports, and a clear, well-organized one that follows the rules makes a strong first impression before they read a single argument. A missing first-page field, a report over the page limit, or a section left out can cost you points or your whole entry.
+
+  This module is about turning your drafts into one polished, rule-following PDF. It's also your last chance to fix weak spots before you build slides from it.
 </Part>
 
 <Part id="learn">
-  <TodoBlock title="TODO: Learn">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  ### Start from the YIS template
+
+  YIS {guidance.reportTemplate} using its <a href={reportTemplateUrl}>Stock Pitch Report Template</a>. Move your drafts into it, or into GHIC's copy of it, so your layout matches what judges expect.
+
+  ### The first page
+
+  The first page must include all of these:
+
+  <ul>
+    {firstPageFields.map((field) => <li>{field.label}</li>)}
+  </ul>
+
+  Put them together at the top, in a small table or block, so a judge can find each one in seconds. The share price must have a date, and the <GlossaryTerm id="target-price">target price</GlossaryTerm> must show the percent increase or decrease.
+
+  ### Required sections
+
+  Your report must include these sections:
+
+  <ol>
+    {requiredSections.map((section) => (
+      <li>{section.label}{section.detail ? `: ${section.detail}` : ''}</li>
+    ))}
+  </ol>
+
+  Use these exact names as your headings and keep them in this order, so judges can check them off easily. You can add other sections, but you can't leave any of these out.
+
+  ### Length and the appendix
+
+  The report can be at most {limits.reportMaxPages} pages. Extra charts, tables, and your sources list can go in an <GlossaryTerm id="appendix">appendix</GlossaryTerm> after that, and the appendix can be any length. Keep the main argument in the main pages; judges may not read every page of an appendix.
+
+  Don't shrink the font or margins to squeeze in more. Cut words instead.
+
+  ### Write like an independent analyst
+
+  YIS asks for a report written from the perspective of an independent research analyst:
+
+  - **Neutral tone:** no hype words like "amazing" or "guaranteed"
+  - **Evidence for every claim**, with a source
+  - **Only public information:** anything you cite must be available to anyone
+  - **Honest about risks:** naming them makes you more convincing, not less
+
+  ### Cite your sources
+
+  Every number needs a source. The simplest system: a short note after the number, like "(Costco 10-K, fiscal 2026)", plus a full Sources list in the appendix with links. Be consistent.
+
+  ### Charts and tables
+
+  Every chart and table needs a title, labeled axes or columns, units, and a source line. One chart that makes a point beats three that just show data.
+
+  ### Edit in three passes
+
+  1. **Structure:** every required section is there, in order, under the page limit.
+  2. **Argument:** each section supports your recommendation, and the numbers match everywhere they appear.
+  3. **Polish:** spelling, grammar, consistent number formats, and no leftover notes to yourself.
+
+  Then read it out loud. Anything you stumble over, rewrite.
+
+  ### Your work, your words
+
+  YIS prohibits using AI to generate any part of the report, and you must be able to explain and defend everything in it. GHIC's reading of the rule: basic spelling checkers are fine, but tools that rewrite your sentences are not. If you're unsure about a tool, ask YIS before you use it.
 </Part>
 
 <Part id="see">
-  <TodoBlock title="TODO: See it">
-    Content for this part hasn't been written yet.
+  ### An annotated first page
+
+  Fictional students; the price is the illustrative one from module 5.
+
+  <div class="overflow-x-auto" role="region" aria-label="An annotated example first page" tabindex="0">
+
+  | Field | Example | Note |
+  | --- | --- | --- |
+  | Names | Jordan Lee and Sam Patel | First and last name for each partner |
+  | School, state | Green Hope High School, North Carolina | |
+  | Emails | jordan.lee@example.com, sam.patel@example.com | One for each student |
+  | Company | Costco Wholesale Corporation | Full legal name |
+  | Exchange and ticker | Nasdaq: COST | |
+  | <GlossaryTerm id="sector">Sector</GlossaryTerm> | Consumer Staples (warehouse clubs) | Sector, plus the industry if it helps |
+  | Recommendation | Hold | Buy, Sell, or Hold |
+  | Current price | $1,000.00 as of [date] | Always dated |
+  | Target price | $1,027.80 (+2.8%) | Always with the percent change |
+
+  </div>
+
+  <TodoBlock title="TODO: Price date">
+    Fill in "[date]" when the illustrative share price from module 5 is replaced with a real, dated price before launch.
+  </TodoBlock>
+
+  Below this block, the first page usually starts the Investment Summary or the Business Description, depending on the template.
+
+  ### A sample sources list entry
+
+  <blockquote class="[overflow-wrap:anywhere]">
+    <p>Costco Wholesale Corporation. Form 10-K for the fiscal year ended August 30, 2026. Filed with the US Securities and Exchange Commission. <a href="https://www.sec.gov/Archives/edgar/data/0000909832/000090983226000093/cost-20260830.htm">https://www.sec.gov/Archives/edgar/data/0000909832/000090983226000093/cost-20260830.htm</a></p>
+  </blockquote>
+
+  ### Before and after: analyst voice
+
+  <div class="overflow-x-auto" role="region" aria-label="Sentences before and after rewriting in an analyst voice" tabindex="0">
+
+  | Before | After |
+  | --- | --- |
+  | Costco is an amazing company that everyone loves. | 92.3% of Costco members in the US and Canada renewed in fiscal 2026 (Costco 10-K). |
+  | The stock will definitely go up. | Our target price of $1,027.80 implies 2.8% upside. |
+  | There are basically no risks. | The main risk is valuation: at 48 times earnings, slower growth could push the price down. |
+
+  </div>
+
+  <TodoBlock title="TODO: Confirm sector label">
+    For reviewers: Confirm Costco's sector label against a standard source before launch.
   </TodoBlock>
 </Part>
 
 <Part id="do">
-  <TodoBlock title="TODO: Do it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. **Read your mentor's feedback** on your full draft and list the changes you'll make.
+  2. **Move everything into the <a href={reportTemplateUrl}>report template</a>.**
+  3. **Fill in the first page** with every required field. Update the share price and its date.
+  4. **Check the section names and order** against the required list.
+  5. **Cut to {limits.reportMaxPages} pages** and move extra charts and tables to the appendix.
+  6. **Add your sources list** to the appendix and check every number has a source.
+  7. **Edit in three passes**, then read it out loud.
+  8. **Use the report check tool** to tick off every requirement.
+  9. **Export it as a PDF** named <code class="[overflow-wrap:anywhere]">{reportFileName}</code>.
+  10. **Tick off module 7** in your [progress tracker](/learn#progress) and send the PDF to your mentor.
+
+  **Deliverable:** your revised report as a PDF. Due by <time datetime={new Date(frontmatter.due).toISOString().slice(0, 10)}>{formatDue(new Date(frontmatter.due))}</time>.
 </Part>
 
 <Part id="check">
-  <TodoBlock title="TODO: Check it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. Is every first-page field filled in, with a dated price?
+  2. Are all required sections there, in order, with their exact names?
+  3. Is the main report {limits.reportMaxPages} pages or fewer?
+  4. Does every number have a source, and do numbers match everywhere they appear?
+  5. Is the file a PDF with the correct name?
+  6. Could you explain and defend every sentence?
+
+  **Common mistakes:** an undated share price, a target price without its percent change, a missing ESG or AI section, shrinking the font to fit the page limit, numbers that differ between sections, and submitting a Google Docs link instead of a PDF.
 </Part>

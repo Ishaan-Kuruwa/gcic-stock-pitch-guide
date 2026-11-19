@@ -15,30 +15,150 @@ reviewedBy: ""
 
 import Part from '../../components/ModulePart.astro';
 import TodoBlock from '../../components/Todo.astro';
+import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import PECalculator from '../../components/PECalculator.tsx';
+import { formatDue } from '../../lib/modules';
+import { officialLinks } from '../../data/competition';
+
+export const intrinsicValueModelUrl = officialLinks.find((link) => link.id === 'intrinsic-value-model')?.url;
 
 <Part id="why">
-  <TodoBlock title="TODO: Why it matters">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  A great company isn't always a great investment. If everyone already knows how good it is, its stock price may already reflect that, leaving little room to rise. <GlossaryTerm id="valuation">Valuation</GlossaryTerm> is how you decide whether the price is too high, too low, or about right.
+
+  Your valuation produces the two numbers judges look for first: your <GlossaryTerm id="target-price">target price</GlossaryTerm> and the percent <GlossaryTerm id="upside">upside or downside</GlossaryTerm> from today's price. Both go on the first page of your report and your title slide, and your whole recommendation rests on them.
 </Part>
 
 <Part id="learn">
-  <TodoBlock title="TODO: Learn">
-    Content for this part hasn't been written yet.
+  ### The P/E ratio
+
+  The <GlossaryTerm id="pe-ratio">price-to-earnings (P/E) ratio</GlossaryTerm> tells you how much investors pay for each dollar of a company's yearly profit.
+
+  $$
+  \text{P/E} = \frac{\text{Share price}}{\text{Earnings per share (EPS)}}
+  $$
+
+  A stock at $50 with <GlossaryTerm id="eps">EPS</GlossaryTerm> of $2.50 has a P/E of 20: investors pay $20 for every $1 of earnings. A high P/E usually means investors expect fast growth or see the company as unusually safe. A low P/E can mean the opposite, or that the market is overlooking something.
+
+  P/E only works when <GlossaryTerm id="earnings">earnings</GlossaryTerm> are positive. That's why module 1 asked you to pick a profitable company.
+
+  ### The valuation in three steps
+
+  **Step 1: Forecast next year's EPS.** Start from the most recent full-year <GlossaryTerm id="diluted-eps">diluted EPS</GlossaryTerm> (module 4). Then decide how fast it will grow, using:
+
+  - its growth over the past few years
+  - what management says to expect in <GlossaryTerm id="earnings-call">earnings calls</GlossaryTerm> and reports
+  - what you learned about the industry and competition in module 3
+
+  Write down your growth assumption and your reason for it. Judges care more about a well-reasoned assumption than a precise one.
+
+  **Step 2: Choose a target P/E.** This is the P/E you think the stock deserves in a year. Two ways to anchor it:
+
+  - **<GlossaryTerm id="comparable-companies">Comparable companies</GlossaryTerm> ("comps"):** the P/E of three or four similar companies, using their average or median
+  - **The company's own history:** the P/E it has usually traded at over recent years
+
+  Then adjust. If your company grows faster or has a stronger <GlossaryTerm id="moat">moat</GlossaryTerm> than its peers, a higher P/E can be justified, but you have to say why.
+
+  **Step 3: Calculate the target price and upside.**
+
+  $$
+  \text{Target price} = \text{Forecast EPS} \times \text{Target P/E}
+  $$
+
+  $$
+  \text{Upside} = \frac{\text{Target price} - \text{Current price}}{\text{Current price}}
+  $$
+
+  A negative upside is downside, and it points toward a sell.
+
+  ### Test your assumptions
+
+  Your target price is only as good as your two inputs. A <GlossaryTerm id="sensitivity-table">sensitivity table</GlossaryTerm> shows what happens if you're a little wrong: it calculates the target price for a range of EPS forecasts and P/Es. If small changes flip your answer from buy to sell, say so honestly in your report. The [P/E calculator](/tools/pe-calculator) on this site builds the table for you.
+
+  ### Decide your rule before you calculate
+
+  Before running the numbers, decide how much upside you need to recommend a buy, so the result can't sway the rule.
+
+  <TodoBlock title="TODO (officers): GHIC's buy rule">
+    Set GHIC's suggested rule here, for example "buy at 10% upside or more, sell at any downside, and explain anything in between."
   </TodoBlock>
+
+  ### Going further
+
+  Teams ready for more can also try YIS's <a href={intrinsicValueModelUrl}>Intrinsic Value Model</a> and compare its answer with their P/E valuation. Two methods that roughly agree make a stronger case.
 </Part>
 
 <Part id="see">
-  <TodoBlock title="TODO: See it">
-    Content for this part hasn't been written yet.
+  <TodoBlock title="TODO before launch: Real share price and peer P/Es">
+    The share price and peer P/Es below are illustrative round numbers chosen for teaching. Replace them with real figures and their date close to launch, and rerun the math in the P/E calculator. The EPS figures are real, from Costco's fiscal 2026 10-K.
   </TodoBlock>
+
+  ### Starting point
+
+  <div class="overflow-x-auto" role="region" aria-label="Starting point for the Costco valuation" tabindex="0">
+
+  | | Value | Source |
+  | --- | --- | --- |
+  | Current share price | $1,000.00 | Illustrative |
+  | Fiscal 2026 diluted EPS | $20.76 | Costco 10-K |
+  | Current P/E | 48.17 | $1,000.00 ÷ $20.76 |
+
+  </div>
+
+  **Step 1: Forecast EPS.** Costco's EPS grew 10.0% in fiscal 2025 and 14.0% in fiscal 2026. A cautious analyst might assume 10% growth next year, the lower of the two:
+
+  Forecast EPS = $20.76 × 1.10 = $22.84
+
+  **Step 2: Choose a target P/E.** Comparable retailers (illustrative values):
+
+  <div class="overflow-x-auto" role="region" aria-label="P/E ratios of comparable retailers" tabindex="0">
+
+  | Company | P/E |
+  | --- | --- |
+  | Walmart | 38 |
+  | BJ's Wholesale | 22 |
+  | Target | 15 |
+  | Average | 25.00 |
+  | Median | 22.00 |
+
+  </div>
+
+  Costco trades far above its peers. Using the peer average of 25 would give a target of $571.00, a 42.9% drop, but that ignores why investors pay more for Costco: steady growth, a 92.3% renewal rate, and a strong balance sheet. This analyst chooses 45, a little below Costco's current 48.17, assuming its premium holds but shrinks slightly.
+
+  **Step 3: Target price and upside.**
+
+  Target price = $22.84 × 45 = $1,027.80
+
+  Upside = ($1,027.80 − $1,000.00) ÷ $1,000.00 = 2.8%
+
+  ### Testing the assumptions
+
+  <div class="overflow-x-auto" role="region" aria-label="Costco target price at different target P/Es" tabindex="0">
+
+  | Target P/E | Target price | Upside |
+  | --- | --- | --- |
+  | 40 | $913.60 | −8.6% |
+  | 45 | $1,027.80 | 2.8% |
+  | 50 | $1,142.00 | 14.2% |
+
+  </div>
+
+  **What this teaches.** With these assumptions, Costco looks close to fairly priced: a great company, but the price already reflects much of that. The answer swings from downside to strong upside depending on one choice, the P/E, so a real report would spend most of its valuation section defending that number. That's exactly the debate module 1 pointed to: is the stock too expensive for how fast the company is growing?
+
+  All the numbers above follow the P/E calculator's rounding, so you can reproduce them there.
 </Part>
 
 <Part id="do">
-  <TodoBlock title="TODO: Do it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. **Look up your company's current share price** and write down the date.
+  2. **Calculate its current P/E** using the latest diluted EPS from module 4.
+  3. **Forecast next year's EPS.** Write your growth assumption and two reasons for it.
+  4. **Pick three or four comparable companies**, look up each one's P/E, and write down the date and source.
+  5. **Choose your target P/E**, and write two or three sentences explaining why.
+  6. **Run the [P/E calculator](/tools/pe-calculator)** with your numbers. Copy the formula lines into your report.
+  7. **Check the sensitivity table.** Note which inputs would flip your recommendation.
+  8. **Draft your Valuation section:** your inputs, the math, your target price and upside, and the sensitivity table.
+  9. **Tick off module 5** in your [progress tracker](/learn#progress) and share the draft with your mentor.
+
+  **Deliverable:** your Valuation section with the math shown. Due by <time datetime={new Date(frontmatter.due).toISOString().slice(0, 10)}>{formatDue(new Date(frontmatter.due))}</time>.
 
   ### P/E calculator
 
@@ -48,7 +168,11 @@ import PECalculator from '../../components/PECalculator.tsx';
 </Part>
 
 <Part id="check">
-  <TodoBlock title="TODO: Check it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. Is every input (price, EPS, peer P/Es) labeled with its source and date?
+  2. Can you explain why you chose your target P/E in two sentences?
+  3. Does your math reproduce exactly in the calculator?
+  4. Do you know which change in your assumptions would flip your recommendation?
+  5. Have you used diluted EPS from a full fiscal year?
+
+  **Common mistakes:** choosing a P/E with no reason, mixing up current and forecast EPS, using peers from a different industry, forgetting to date the share price, and treating the target price as certain instead of showing a range.
 </Part>
