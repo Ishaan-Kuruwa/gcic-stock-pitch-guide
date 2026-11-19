@@ -1,0 +1,63 @@
+/*
+ * Print: plain black on white, no site chrome, show where links go.
+ * Imported after global.css (see BaseLayout); selectors match the dark-mode
+ * ones so print colors win even when the OS is in dark mode.
+ */
+@media print {
+  :root,
+  :root:not([data-theme="light"]),
+  :root[data-theme="dark"] {
+    color-scheme: light;
+    --gc-bg: #ffffff;
+    --gc-surface: #ffffff;
+    --gc-text: #000000;
+    --gc-muted: #333333;
+    --gc-accent: #000000;
+    --gc-border: #999999;
+  }
+
+  html {
+    font-size: 12pt;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.9em;
+    word-break: break-all;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
+  }
+
+  figure,
+  table,
+  pre,
+  blockquote,
+  img {
+    break-inside: avoid;
+  }
+}
+
+/* Module pages: keep each part and the rubric badge together where possible. */
+@media print {
+  .module-part {
+    break-before: auto;
+  }
+
+  .module-part > h2 {
+    break-after: avoid;
+  }
+
+  .rubric-badge,
+  .module-facts {
+    break-inside: avoid;
+  }
+}

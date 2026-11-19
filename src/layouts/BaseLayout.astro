@@ -1,15 +1,19 @@
 ---
 import '../styles/global.css';
+import '../styles/print.css';
 import { isCurrentPath } from '../lib/nav';
 import { officialLinks } from '../data/competition';
 
 interface Props {
   title: string;
   description?: string;
+  /** Ask search engines not to index this page (e.g. draft modules). */
+  noindex?: boolean;
 }
 
 const {
   title,
+  noindex = false,
   description = 'A step-by-step guide for GCIC members entering the YIS Global Stock Pitch Competition.',
 } = Astro.props;
 
@@ -36,6 +40,7 @@ const guidelines = officialLinks.find((link) => link.id === 'guidelines')!;
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <title>{pageTitle}</title>
   </head>
   <body class="flex min-h-screen flex-col bg-bg text-text">

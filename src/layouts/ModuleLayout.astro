@@ -1,0 +1,98 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import RubricBadge from '../components/RubricBadge.astro';
+import { MODULE_PARTS, formatDue, isoDay, type ModuleData } from '../lib/modules';
+
+/** A neighbor link, or "coming-soon" when a live page has no live module on that side. */
+export type ModuleNavTarget = { href: string; number: number; title: string } | 'coming-soon';
+
+interface Props {
+  data: ModuleData;
+  prev?: ModuleNavTarget;
+  next?: ModuleNavTarget;
+}
+
+const { data, prev, next } = Astro.props;
+const isLive = data.status === 'live';
+const statusLabel = data.status === 'reviewed' ? 'Reviewed, not yet live' : 'Draft';
+---
+
+<BaseLayout title={`Module ${data.number}: ${data.title}`} description={data.summary} noindex={!isLive}>
+  <article>
+    <header>
+      <p class="text-sm font-semibold uppercase tracking-wide text-muted">Module {data.number}</p>
+      <h1 class="text-3xl font-bold">{data.title}</h1>
+      <p class="mt-2 text-lg">{data.summary}</p>
+
+      {
+        !isLive && (
+          <p role="note" class="mt-4 rounded border-2 border-dashed border-border bg-surface p-3">
+            <strong>{statusLabel}.</strong> This module is still being written and isn't on the{' '}
+            <a href="/learn">learning path</a> yet.
+          </p>
+        )
+      }
+
+      <dl class="module-facts mt-6 grid gap-4 sm:grid-cols-2">
+        <div>
+          <dt class="font-bold">Deliverable</dt>
+          <dd>{data.deliverable}</dd>
+        </div>
+        <div>
+          <dt class="font-bold">Due</dt>
+          <dd><time datetime={isoDay(data.due)}>{formatDue(data.due)}</time></dd>
+        </div>
+      </dl>
+
+      <div class="mt-6">
+        <RubricBadge ids={data.rubric} />
+      </div>
+
+      <nav aria-label="Parts of this module" class="no-print mt-6">
+        <ol class="flex flex-wrap gap-2">
+          {
+            MODULE_PARTS.map((part, i) => (
+              <li>
+                <a
+                  href={`#part-${part.id}`}
+                  class="inline-block rounded border border-border px-3 py-1 no-underline hover:underline"
+                >
+                  {i + 1}. {part.title}
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+    </header>
+
+    <slot />
+  </article>
+
+  <nav aria-label="Module navigation" class="no-print mt-12 border-t border-border pt-6">
+    <ul class="grid gap-4 sm:grid-cols-2">
+      <li>
+        {
+          prev === 'coming-soon' ? (
+            <span class="text-muted">Previous: coming soon</span>
+          ) : prev ? (
+            <a href={prev.href} rel="prev" class="inline-block py-1">
+              <span aria-hidden="true">← </span>Previous: Module {prev.number}, {prev.title}
+            </a>
+          ) : null
+        }
+      </li>
+      <li class="sm:text-right">
+        {
+          next === 'coming-soon' ? (
+            <span class="text-muted">Next: coming soon</span>
+          ) : next ? (
+            <a href={next.href} rel="next" class="inline-block py-1">
+              Next: Module {next.number}, {next.title}<span aria-hidden="true"> →</span>
+            </a>
+          ) : null
+        }
+      </li>
+    </ul>
+  </nav>
+</BaseLayout>

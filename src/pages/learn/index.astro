@@ -1,0 +1,46 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { formatDue, isoDay, moduleSlug, sortModules } from '../../lib/modules';
+
+const modules = sortModules(await getCollection('modules'));
+---
+
+<BaseLayout title="Learn" description="The learning path: every module, its deliverable, and when it's due.">
+  <h1 class="text-3xl font-bold">Learning path</h1>
+  <p class="mt-2">
+    Work through the modules in order. Each one ends with a deliverable and a due date. Read the{' '}
+    <a href="/rules">rules</a> any time.
+  </p>
+
+  <ol class="mt-8 space-y-4">
+    {
+      modules.map(({ id, data }) => {
+        const live = data.status === 'live';
+        const headingId = `module-${data.number}`;
+        return (
+          <li>
+            <article aria-labelledby={headingId} class="rounded border border-border bg-surface p-4">
+              <p class="text-sm font-semibold uppercase tracking-wide text-muted">Module {data.number}</p>
+              <h2 id={headingId} class="text-xl font-bold">
+                {live ? <a href={`/learn/${moduleSlug(id)}`}>{data.title}</a> : data.title}
+              </h2>
+              {!live && (
+                <p class="mt-1 inline-block rounded border border-border px-2 text-sm text-muted">Coming soon</p>
+              )}
+              <p class="mt-2">{data.summary}</p>
+              <dl class="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-[auto_1fr]">
+                <dt class="font-bold">Deliverable</dt>
+                <dd>{data.deliverable}</dd>
+                <dt class="font-bold">Due</dt>
+                <dd>
+                  <time datetime={isoDay(data.due)}>{formatDue(data.due)}</time>
+                </dd>
+              </dl>
+            </article>
+          </li>
+        );
+      })
+    }
+  </ol>
+</BaseLayout>
