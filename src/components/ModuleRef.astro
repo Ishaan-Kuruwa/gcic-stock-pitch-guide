@@ -1,0 +1,16 @@
+---
+/**
+ * Text about a module: a link when the module is live, plain text otherwise.
+ * Usage: <ModuleRef number={5}>"Value the company."</ModuleRef>
+ */
+import { getCollection } from 'astro:content';
+import { moduleHref } from '../lib/modules';
+
+interface Props {
+  number: number;
+}
+
+const href = moduleHref(await getCollection('modules'), Astro.props.number);
+---
+
+{href ? <a href={href}><slot /></a> : <slot />}

@@ -7,12 +7,11 @@ deliverable: "Team registered (opens Dec 15)"
 due: 2026-12-18
 tools: []
 templates: []
-status: draft
-reviewedBy: ""
+status: live
+reviewedBy: "Ishaan Kuruwa"
 ---
 
 import Part from '../../components/ModulePart.astro';
-import TodoBlock from '../../components/Todo.astro';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import {
   deadline,
@@ -92,11 +91,25 @@ Every module has the same five parts: Why it matters, Learn, See it (an example)
 
 <Part id="see">
 
-<TodoBlock title="TODO: Annotated first-page example">
-  An annotated example of a correct report first page, using the worked-example company once it's chosen. Label each required field: names, school, state, each student's email, company name, <GlossaryTerm id="exchange">exchange</GlossaryTerm> or <GlossaryTerm id="ticker">ticker</GlossaryTerm>, <GlossaryTerm id="sector">sector</GlossaryTerm>, recommendation, current price with its date, and <GlossaryTerm id="target-price">target price</GlossaryTerm> with the percent change.
-</TodoBlock>
+Here's what each field on your report's first page should hold, using GHIC's worked example, Costco, with two fictional students:
 
-Until the example is ready, the required first-page fields are listed on the [Rules page](/rules#first-page).
+<div class="overflow-x-auto" role="region" aria-label="Report first-page fields with Costco examples" tabindex="0">
+
+| Field | What to write | Example |
+| --- | --- | --- |
+| Names | First and last name of each student | Jordan Lee and Sam Patel |
+| School, state | Your school and state | Green Hope High School, North Carolina |
+| Emails | One for each student | jordan.lee@example.com, sam.patel@example.com |
+| Company | Its full legal name | Costco Wholesale Corporation |
+| <GlossaryTerm id="exchange">Exchange</GlossaryTerm> and <GlossaryTerm id="ticker">ticker</GlossaryTerm> | Where it trades, and its code | Nasdaq: COST |
+| <GlossaryTerm id="sector">Sector</GlossaryTerm> | Its sector, plus the industry if it helps | Consumer Staples (discount stores) |
+| Recommendation | Buy, Sell, or Hold | Hold |
+| Current price | The share price, with the date you looked it up | Always dated |
+| <GlossaryTerm id="target-price">Target price</GlossaryTerm> | Your target, with the percent change from today | Always with the percent |
+
+</div>
+
+Module 7 shows a complete first page with real numbers.
 
 </Part>
 
