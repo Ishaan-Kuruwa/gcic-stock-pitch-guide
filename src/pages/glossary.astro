@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Todo from '../components/Todo.astro';
+import { glossary } from '../data/glossary';
+---
+
+<BaseLayout title="Glossary">
+  <h1 class="text-3xl font-bold">Glossary</h1>
+  <dl class="mt-6 space-y-6">
+    {
+      glossary.map((entry) => (
+        <div id={entry.id} class="scroll-mt-4">
+          <dt class="text-xl font-bold">{entry.term}</dt>
+          <dd>
+            {'definition' in entry && entry.definition ? (
+              <p>{entry.definition}</p>
+            ) : (
+              <Todo title="TODO: definition coming">
+                <p>This definition hasn't been written yet.</p>
+              </Todo>
+            )}
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+</BaseLayout>

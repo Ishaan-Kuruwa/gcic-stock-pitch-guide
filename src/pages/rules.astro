@@ -1,0 +1,193 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import GlossaryTerm from '../components/GlossaryTerm.astro';
+import {
+  contentRules,
+  deadline,
+  entryFee,
+  fileNames,
+  firstPageFields,
+  integrityPolicy,
+  lastChecked,
+  officialLinks,
+  registration,
+  requiredItems,
+  requiredSections,
+  rubricCategories,
+  rubricLines,
+  submission,
+  teams,
+} from '../data/competition';
+import { groupRubric, rubricTotal } from '../lib/rubric';
+import { formatDate } from '../lib/format';
+
+const groups = groupRubric(rubricCategories, rubricLines);
+const total = rubricTotal(rubricLines);
+const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+const guidelines = officialLinks.find((l) => l.id === 'guidelines')!;
+
+// Finance terms in data labels that link to the glossary.
+const sectionTerms: Partial<Record<string, 'investment-summary' | 'valuation' | 'esg'>> = {
+  'investment-summary': 'investment-summary',
+  valuation: 'valuation',
+  esg: 'esg',
+};
+const fieldTerms: Partial<Record<string, 'ticker' | 'sector' | 'target-price'>> = {
+  ticker: 'ticker',
+  sector: 'sector',
+  'target-price': 'target-price',
+};
+const h2 = 'mt-10 text-2xl font-bold';
+---
+
+<BaseLayout title="Rules" description="YIS Global Stock Pitch Competition requirements, rubric, and AI policy.">
+  <h1 class="text-3xl font-bold">Competition rules</h1>
+  <p class="mt-2">
+    A plain summary of the official rules. If anything here differs from YIS, YIS wins: check the{' '}
+    <a href={guidelines.url}>official guidelines and rubric</a>.
+  </p>
+  <p class="mt-2 text-sm text-muted">
+    Last checked against yis.org: <time datetime={lastChecked}>{formatDate(lastChecked)}</time>.
+  </p>
+
+  <section aria-labelledby="glance">
+    <h2 id="glance" class={h2}>At a glance</h2>
+    <ul class="mt-3 list-disc pl-6 space-y-1">
+      <li><strong>Deadline:</strong> {deadline.display}. No late submissions.</li>
+      <li><strong>Teams:</strong> {teams}.</li>
+      <li><strong>Entry fee:</strong> {usd.format(entryFee.amountUsd)} per {entryFee.per} ({entryFee.note}).</li>
+      <li>
+        <strong>Registration:</strong> through {registration.via}. Closes{' '}
+        <time datetime={registration.closes.date}>{formatDate(registration.closes.date)}</time>. Opens{' '}
+        <time datetime={registration.opens.date}>{formatDate(registration.opens.date)}</time>
+        {!registration.opens.confirmed && <span> (unconfirmed, check {registration.via})</span>}.
+      </li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="submit">
+    <h2 id="submit" class={h2}>What to submit</h2>
+    <p class="mt-3">
+      Email everything to <a href={`mailto:${submission.email}`}>{submission.email}</a>. Three items are required:
+    </p>
+    <ol class="mt-3 list-decimal pl-6 space-y-3">
+      {
+        requiredItems.map((item) => (
+          <li>
+            <strong>{item.label}</strong>
+            <ul class="list-disc pl-6">
+              {item.constraints.map((c) => <li>{c}</li>)}
+            </ul>
+          </li>
+        ))
+      }
+    </ol>
+    <h3 class="mt-6 text-xl font-bold">Email rules</h3>
+    <ul class="mt-2 list-disc pl-6 space-y-1">
+      {submission.rules.map((r) => <li>{r}</li>)}
+      <li>Email body: {submission.emailBodyFields.join(', ')}.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="files">
+    <h2 id="files" class={h2}>File names</h2>
+    <dl class="mt-3 space-y-2">
+      {
+        fileNames.map((f) => (
+          <div>
+            <dt class="font-bold capitalize">{f.item}</dt>
+            <dd><code class="break-words">{f.pattern}</code></dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <section aria-labelledby="first-page">
+    <h2 id="first-page" class={h2}>First page of the report and title slide</h2>
+    <p class="mt-3">Both must include:</p>
+    <ul class="mt-2 list-disc pl-6 space-y-1">
+      {
+        firstPageFields.map((f) => {
+          const term = fieldTerms[f.id];
+          return <li>{term ? <GlossaryTerm id={term}>{f.label}</GlossaryTerm> : f.label}</li>;
+        })
+      }
+    </ul>
+    <p class="mt-2 text-sm text-muted">
+      Glossary: <GlossaryTerm id="exchange">exchange</GlossaryTerm>,{' '}
+      <GlossaryTerm id="ticker">ticker</GlossaryTerm>.
+    </p>
+  </section>
+
+  <section aria-labelledby="sections">
+    <h2 id="sections" class={h2}>Required sections (report and slides)</h2>
+    <ol class="mt-3 list-decimal pl-6 space-y-1">
+      {
+        requiredSections.map((s) => {
+          const term = sectionTerms[s.id];
+          return (
+            <li>
+              {term ? <GlossaryTerm id={term}>{s.label}</GlossaryTerm> : s.label}
+              {'detail' in s && s.detail && <span>: {s.detail}</span>}
+            </li>
+          );
+        })
+      }
+    </ol>
+    <ul class="mt-3 list-disc pl-6 space-y-1">
+      {contentRules.map((r) => <li>{r}</li>)}
+    </ul>
+  </section>
+
+  <section aria-labelledby="rubric">
+    <h2 id="rubric" class={h2}>Scoring rubric ({total} points)</h2>
+    {
+      groups.map((g) => (
+        <div class="mt-6 overflow-x-auto">
+          <table class="w-full border-collapse text-left">
+            <caption class="text-left text-xl font-bold pb-2">
+              {g.category.label} ({g.category.points} points)
+            </caption>
+            <thead>
+              <tr class="border-b-2 border-border">
+                <th scope="col" class="py-2 pr-4">What judges look for</th>
+                <th scope="col" class="py-2 text-right">Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              {g.lines.map((line) => (
+                <tr class="border-b border-border" id={`rubric-${line.id}`}>
+                  <td class="py-2 pr-4">{line.label}</td>
+                  <td class="py-2 text-right tabular-nums">{line.points}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr class="font-bold">
+                <th scope="row" class="py-2 pr-4">Subtotal</th>
+                <td class="py-2 text-right tabular-nums">{g.total}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      ))
+    }
+    <p class="mt-4 text-lg font-bold">Total: {total} points</p>
+  </section>
+
+  <section aria-labelledby="integrity">
+    <h2 id="integrity" class={h2}>AI and outside help</h2>
+    <ul class="mt-3 list-disc pl-6 space-y-2">
+      {integrityPolicy.map((p) => <li>{p}</li>)}
+    </ul>
+    <p class="mt-3">Read the full policy in the <a href={guidelines.url}>official guidelines</a>.</p>
+  </section>
+
+  <section aria-labelledby="links">
+    <h2 id="links" class={h2}>Official YIS links</h2>
+    <ul class="mt-3 list-disc pl-6 space-y-1">
+      {officialLinks.map((l) => <li><a href={l.url}>{l.label}</a></li>)}
+    </ul>
+  </section>
+</BaseLayout>
