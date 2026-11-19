@@ -7,7 +7,7 @@ rubric:
   - report-financials
 deliverable: "Valuation section with the math shown"
 due: 2027-01-12
-tools: []
+tools: ['pe-calculator']
 templates: []
 status: draft
 reviewedBy: ""
@@ -15,6 +15,7 @@ reviewedBy: ""
 
 import Part from '../../components/ModulePart.astro';
 import TodoBlock from '../../components/Todo.astro';
+import PECalculator from '../../components/PECalculator.tsx';
 
 <Part id="why">
   <TodoBlock title="TODO: Why it matters">
@@ -38,6 +39,12 @@ import TodoBlock from '../../components/Todo.astro';
   <TodoBlock title="TODO: Do it">
     Content for this part hasn't been written yet.
   </TodoBlock>
+
+  ### P/E calculator
+
+  You can also open the [P/E calculator](/tools/pe-calculator) on its own page.
+
+  <PECalculator client:visible headingLevel={4} />
 </Part>
 
 <Part id="check">
