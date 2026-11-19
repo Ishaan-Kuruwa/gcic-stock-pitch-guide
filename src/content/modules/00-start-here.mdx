@@ -13,33 +13,125 @@ reviewedBy: ""
 
 import Part from '../../components/ModulePart.astro';
 import TodoBlock from '../../components/Todo.astro';
+import GlossaryTerm from '../../components/GlossaryTerm.astro';
+import {
+  deadline,
+  entryFee,
+  limits,
+  registration,
+  rubricTotalPoints,
+  submission,
+} from '../../data/competition';
+import { formatDate } from '../../lib/format';
+import { formatDue } from '../../lib/modules';
+import { categoryPoints, deadlineEastern, formatUsd } from '../../lib/facts';
+
+export const fee = formatUsd(entryFee.amountUsd);
 
 <Part id="why">
-  <TodoBlock title="TODO: Why it matters">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+
+The easiest points to lose in this competition have nothing to do with stocks. Even a strong team can lose points or be disqualified for things like a missing field on the first page, a video that runs too long, or a Google Drive link instead of an attachment. Ten minutes on the rules now protects months of work.
+
+The rubric also tells you exactly where the points are, and it might surprise you: only half of the score comes from your written analysis. The other half comes from your slides and your video. Knowing that from day one changes how you spend your time.
+
+Finally, the deadline is closer than it looks. If you know the timeline today, February won't turn into a scramble.
+
 </Part>
 
 <Part id="learn">
-  <TodoBlock title="TODO: Learn">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+
+### What the competition is
+
+In the YIS Global Stock Pitch Competition, you pick one publicly traded company, research it the way a professional analyst would, and make a recommendation: should investors buy the stock or sell it? Then you back that call up with evidence. You can enter on your own or with one partner. You don't need any experience with investing to start. This site walks you through every step.
+
+### What you submit
+
+You turn in three things:
+
+1. **A written report.** A PDF of no more than {limits.reportMaxPages} pages. You can add an appendix of any length for extra charts and tables.
+2. **A slide deck.** A PowerPoint or PDF file that summarizes your report. Keynote files aren't accepted, so if you use Google Slides, download it as a PowerPoint.
+3. **A video.** A YouTube link to a video of you presenting your pitch with your slides on screen. It must be under {limits.videoMaxMinutes} minutes, and you can't speed it up. You don't need to edit it.
+
+All three go in one email to <a href={`mailto:${submission.email}`}>{submission.email}</a> by {deadline.display}. That's Pacific time, which means {deadlineEastern} here in North Carolina. Don't plan around that, though. GHIC's target is February 17, so a bad internet night or a broken file never costs you your entry.
+
+### How you're scored
+
+Judges score every entry out of {rubricTotalPoints}:
+
+- **Investment Idea: {categoryPoints('investment-idea')} points.** Does your recommendation make sense, show real insight into the company and its industry, and rest on sound financial analysis? This also covers your <GlossaryTerm id="esg">ESG</GlossaryTerm> and AI sections.
+- **Presentation: {categoryPoints('presentation')} points.** Do your slides use clear bullets that you explain, and does your pitch keep a good pace?
+- **YouTube Video: {categoryPoints('video')} points.** Do you present clearly, stay under the time limit, know your company, and come across as professional?
+
+The full breakdown is on the [Rules page](/rules#rubric). The big lesson: a great report with a weak video can lose to a good report with a strong one. Plan to spend real time practicing your pitch.
+
+### Rules that can get you disqualified
+
+These are the rules that matter most. Break one and your entry may not be scored at all.
+
+- **It has to be your own work.** Paying or hiring anyone to research, write, or finish any part of your entry is banned.
+- **AI can help you learn, not write.** You can use AI to explain a concept or point you toward research, but you can't use it to write any part of your report, slides, or analysis. Check anything AI tells you against a real source.
+- **Use only public information.** Everything in your pitch has to come from sources anyone could find.
+- **Attach your files.** Google Drive links aren't accepted, and judges must be able to open everything without asking for permission.
+- **Be ready to defend it.** You need to be able to explain every number and every claim you make.
+
+### How GHIC gets you there
+
+GHIC breaks the work into small steps with checkpoints, so you're never facing the whole thing at once. The [learning path](/learn) shows every module and its due date. Mentored teams also check in with an officer at least every two weeks and get feedback on each draft. Mentors ask questions and point out gaps, but they never write anything for you. That's both GHIC's rule and YIS's.
+
+### How to register
+
+You register through {registration.via}, YIS's student portal. The entry fee is {fee} per person. Registration opens <time datetime={registration.opens.date}>{formatDate(registration.opens.date)}</time> and closes <time datetime={registration.closes.date}>{formatDate(registration.closes.date)}</time>.{registration.opens.confirmed ? '' : ` The opening date isn’t confirmed yet, so check ${registration.via} before you plan around it.`}
+
+### How to use this site
+
+Every module has the same five parts: Why it matters, Learn, See it (an example), Do it (your task), and Check it (a quick self-check before you move on). Each module ends with one deliverable. When you finish it, tick it off in your progress tracker and send your progress to your mentor.
+
 </Part>
 
 <Part id="see">
-  <TodoBlock title="TODO: See it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+
+<TodoBlock title="TODO: Annotated first-page example">
+  An annotated example of a correct report first page, using the worked-example company once it's chosen. Label each required field: names, school, state, each student's email, company name, <GlossaryTerm id="exchange">exchange</GlossaryTerm> or <GlossaryTerm id="ticker">ticker</GlossaryTerm>, <GlossaryTerm id="sector">sector</GlossaryTerm>, recommendation, current price with its date, and <GlossaryTerm id="target-price">target price</GlossaryTerm> with the percent change.
+</TodoBlock>
+
+Until the example is ready, the required first-page fields are listed on the [Rules page](/rules#first-page).
+
 </Part>
 
 <Part id="do">
-  <TodoBlock title="TODO: Do it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+
+1. **Decide on your team.** Talk with your partner, if you have one, and agree that you're entering together. You can also enter alone.
+2. **Register on {registration.via}** once registration opens. Every team member pays the {fee} fee.
+3. **Put two dates in your calendar:** February 17 (GHIC's target) and {deadline.display} (the real deadline).
+4. **Tick off module 0** in your progress tracker.
+
+**Deliverable:** your team is registered. Due by <time datetime={new Date(frontmatter.due).toISOString().slice(0, 10)}>{formatDue(new Date(frontmatter.due))}</time>.
+
 </Part>
 
 <Part id="check">
-  <TodoBlock title="TODO: Check it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+
+Before moving on, make sure you can answer these without looking back:
+
+1. What three things do you submit, and in how many emails?
+2. What's the page limit for the report, and what can go in the appendix?
+3. How long can your video be, and are you allowed to speed it up?
+4. Where does half of your score come from?
+5. Can you use AI to write your Industry Overview?
+
+And one final check: is everyone on your team registered?
+
+<details class="mt-4 rounded border border-border bg-surface p-4">
+<summary class="cursor-pointer font-semibold">Show answers</summary>
+
+1. A report, a slide deck, and a YouTube link, all in one email.
+2. {limits.reportMaxPages} pages at most. Extra charts and tables can go in an appendix of any length.
+3. Under {limits.videoMaxMinutes} minutes, and no, you can't speed it up.
+4. Your slides and your video.
+5. No. AI can explain concepts, but every word of your submission has to be yours.
+
+</details>
+
+**Common mistakes:** sending Google Drive links instead of attaching files, leaving out first-page fields, a video over the time limit, and submitting at 2 AM on the last night.
+
 </Part>

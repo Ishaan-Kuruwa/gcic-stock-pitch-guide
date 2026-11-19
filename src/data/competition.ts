@@ -121,13 +121,19 @@ export const entryFee = {
 
 export const teams = 'Individual or pairs' as const;
 
+/** Numeric limits. The requiredItems sentences below are built from these. */
+export const limits = {
+  reportMaxPages: 10,
+  videoMaxMinutes: 10,
+} as const;
+
 export const requiredItems = [
   {
     id: 'report',
     label: 'Written report',
     constraints: [
       'PDF attachment.',
-      'Max 10 pages plus an appendix of any length.',
+      `Max ${limits.reportMaxPages} pages plus an appendix of any length.`,
     ],
   },
   {
@@ -140,7 +146,7 @@ export const requiredItems = [
     label: 'YouTube video link',
     constraints: [
       'The student presenting, with the slides shown in the video.',
-      'Under 10 minutes.',
+      `Under ${limits.videoMaxMinutes} minutes.`,
       'Not sped up.',
       'Editing not required.',
       'Link must be viewable by judges.',
