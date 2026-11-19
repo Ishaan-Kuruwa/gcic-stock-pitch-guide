@@ -10,13 +10,23 @@ export interface GlossaryEntry {
 }
 
 export const glossary = [
+  { id: '10-k', term: '10-K' },
+  { id: 'balance-sheet', term: 'Balance sheet' },
+  { id: 'cash-flow-statement', term: 'Cash flow statement' },
   { id: 'earnings', term: 'Earnings' },
   { id: 'eps', term: 'Earnings per share (EPS)' },
   { id: 'esg', term: 'ESG' },
   { id: 'exchange', term: 'Exchange' },
+  { id: 'fiscal-year', term: 'Fiscal year' },
+  { id: 'income-statement', term: 'Income statement' },
   { id: 'investment-summary', term: 'Investment summary' },
+  { id: 'investor-relations', term: 'Investor relations' },
+  { id: 'mdna', term: "Management's Discussion and Analysis (MD&A)" },
   { id: 'pe-ratio', term: 'Price-to-earnings (P/E) ratio' },
+  { id: 'revenue', term: 'Revenue' },
+  { id: 'sec', term: 'Securities and Exchange Commission (SEC)' },
   { id: 'sector', term: 'Sector' },
+  { id: 'segment', term: 'Segment' },
   { id: 'target-price', term: 'Target price' },
   { id: 'ticker', term: 'Ticker' },
   { id: 'valuation', term: 'Valuation' },

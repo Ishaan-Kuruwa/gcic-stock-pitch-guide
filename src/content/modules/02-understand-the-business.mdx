@@ -14,33 +14,122 @@ reviewedBy: ""
 
 import Part from '../../components/ModulePart.astro';
 import TodoBlock from '../../components/Todo.astro';
+import GlossaryTerm from '../../components/GlossaryTerm.astro';
+import { formatDue } from '../../lib/modules';
+import { officialLinks } from '../../data/competition';
+
+export const reportTemplateUrl = officialLinks.find((link) => link.id === 'report-template')?.url;
 
 <Part id="why">
-  <TodoBlock title="TODO: Why it matters">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  Every other part of your pitch rests on this one. You can't judge whether a company will be worth more next year until you know exactly how it earns money today. Judges award points for "insight into the company," and insight starts with understanding the business better than someone who just uses its products.
+
+  This is also the first section of your report, so it's the first thing a judge reads. A clear, specific Business Description tells them right away that you've done real research.
 </Part>
 
 <Part id="learn">
-  <TodoBlock title="TODO: Learn">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  ### How does the company make money?
+
+  Every business sells something to someone. Your first job is to say exactly what, and to whom. Answer these four questions:
+
+  1. **What does it sell?** Products, services, subscriptions, ads, or a mix.
+  2. **Who pays?** Regular people, other businesses, or governments.
+  3. **How do they pay?** One-time purchases, repeat purchases, or recurring fees.
+  4. **Where does most of the money come from?** Most companies have one or two sources that matter far more than the rest.
+
+  Then write the answer as one sentence. If you can't, keep reading until you can.
+
+  ### Your best source: the annual report (10-K)
+
+  Every US public company files a <GlossaryTerm id="10-k">10-K</GlossaryTerm> each year with the <GlossaryTerm id="sec">Securities and Exchange Commission (SEC)</GlossaryTerm>. It's long, but it's free, it's checked by auditors, and it's the most trusted source for your pitch. Find it on SEC EDGAR by searching the company name, or on the company's <GlossaryTerm id="investor-relations">investor relations</GlossaryTerm> website.
+
+  You don't read a 10-K cover to cover. Start with these parts:
+
+  <div class="overflow-x-auto" role="region" aria-label="Parts of a 10-K to read first" tabindex="0">
+
+  | Part | What's in it | Why you need it |
+  | --- | --- | --- |
+  | Item 1: Business | What the company does, its products, customers, and competitors | Your Business Description |
+  | Item 1A: Risk Factors | Everything the company says could go wrong | Your Investment Risks section, later |
+  | Item 7: Management's Discussion and Analysis (<GlossaryTerm id="mdna">MD&A</GlossaryTerm>) | Management explains the year's results in plain-ish English | Why the numbers changed |
+  | Item 8: Financial Statements | The <GlossaryTerm id="income-statement">income statement</GlossaryTerm>, <GlossaryTerm id="balance-sheet">balance sheet</GlossaryTerm>, and <GlossaryTerm id="cash-flow-statement">cash flows</GlossaryTerm> | Module 4 |
+
+  </div>
+
+  For now, read Item 1 closely and skim Item 1A.
+
+  ### Fiscal years
+
+  Many companies don't use January to December as their year. A company's <GlossaryTerm id="fiscal-year">fiscal year</GlossaryTerm> is its own 12-month reporting period. Always say which months you mean the first time you mention one, for example "fiscal 2026 (September 2025 to August 2026)."
+
+  ### Segments and customers
+
+  Big companies split their results into <GlossaryTerm id="segment">segments</GlossaryTerm>: by product line, by type of customer, or by region. Segments show you which parts of the business are biggest and which are growing fastest. Look for them in Item 1 and in the notes to the financial statements.
+
+  ### What goes in your Business Description
+
+  Aim for about half a page to a page:
+
+  - What the company does, in one or two sentences
+  - How it makes money, with its main <GlossaryTerm id="revenue">revenue</GlossaryTerm> sources and their size
+  - Its customers and where it operates
+  - Its segments, if it reports them
+  - Two or three facts that show its scale (stores, users, employees, countries)
+
+  Use numbers, and say where each one came from. Keep opinions out of this section; your argument comes later.
 </Part>
 
 <Part id="see">
-  <TodoBlock title="TODO: See it">
-    Content for this part hasn't been written yet.
+  ### Costco in one sentence
+
+  > Costco sells groceries and household goods in bulk at low prices in membership-only warehouses, and members pay a yearly fee for the right to shop there.
+
+  ### The four questions, answered
+
+  <div class="overflow-x-auto" role="region" aria-label="The four questions answered for Costco" tabindex="0">
+
+  | Question | Costco |
+  | --- | --- |
+  | What does it sell? | Food, household goods, electronics, and services like gas, pharmacy, and optical, plus a yearly membership |
+  | Who pays? | Households and small businesses |
+  | How do they pay? | Repeat purchases, plus an annual membership fee |
+  | Where does most of the money come from? | Merchandise sales are about 98% of revenue; membership fees are about 2% |
+
+  </div>
+
+  ### A sample Business Description
+
+  > Costco Wholesale Corporation (Nasdaq: COST) operates membership warehouses and e-commerce sites that sell a limited selection of products at low prices in high volumes. Its business model is to "operate profitably at significantly lower gross margins (net sales less merchandise costs) than most other retailers," turning over its inventory quickly instead of charging high markups.
+  >
+  > Costco earns money in two ways. In fiscal 2026 (September 2025 to August 2026), it made $297.2 billion in net sales of merchandise and $5.9 billion in membership fees, for $303.2 billion in total revenue. Members pay an annual fee to shop, and 92.3% of members in the US and Canada renewed.
+  >
+  > At the end of fiscal 2026, Costco operated 939 warehouses: 647 in the United States and Puerto Rico, 115 in Canada, and 177 in other countries. It reports its results in those three regions. It had 84.1 million paid members and 150.4 million cardholders, including household cards. (Source: Costco 10-K for fiscal 2026.)
+
+  Notice what it does: it explains the model, gives the two revenue sources with their size, shows scale with a few numbers, and cites its source. It doesn't say whether Costco is a good investment.
+
+  <TodoBlock title="TODO: Recheck Costco figures">
+    For reviewers: All figures come from Costco's 10-K for the fiscal year ended August 30, 2026 (SEC EDGAR). Please recheck each one.
   </TodoBlock>
 </Part>
 
 <Part id="do">
-  <TodoBlock title="TODO: Do it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. **Open your company's latest 10-K** (you found it in module 1). Note the fiscal year it covers and which months that is.
+  2. **Read Item 1: Business.** Answer the four questions in your own notes.
+  3. **Write your one-sentence summary** of how the company makes money.
+  4. **Find the revenue breakdown.** Write down total revenue and its biggest sources or segments, with numbers.
+  5. **Pick two or three facts that show scale**, like stores, users, customers, or countries.
+  6. **Skim Item 1A: Risk Factors** and list the five risks that sound most serious. You'll use them in module 6.
+  7. **Draft your Business Description** in the <a href={reportTemplateUrl}>report template</a>: half a page to a page, with a source for every number.
+  8. **Tick off module 2** in your [progress tracker](/learn#progress) and share the draft with your mentor.
+
+  **Deliverable:** your Business Description draft. Due by <time datetime={new Date(frontmatter.due).toISOString().slice(0, 10)}>{formatDue(new Date(frontmatter.due))}</time>.
 </Part>
 
 <Part id="check">
-  <TodoBlock title="TODO: Check it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. Can you say how your company makes money in one sentence, without notes?
+  2. Does your draft give total revenue and its main sources, with numbers?
+  3. Have you named the fiscal year and its months?
+  4. Does every number have a source?
+  5. Is your draft free of opinions about whether to buy or sell?
+
+  **Common mistakes:** copying the company's own marketing language, listing products without saying which ones bring in the money, using numbers without a year or source, and starting to argue buy or sell in this section.
 </Part>
