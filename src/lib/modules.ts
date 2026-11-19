@@ -124,3 +124,30 @@ export function isoDay(date: Date): string {
 export function formatDue(date: Date): string {
   return formatDate(isoDay(date));
 }
+
+/** What the progress tracker needs for one module. */
+export interface TrackerItem {
+  number: number;
+  title: string;
+  deliverable: string;
+  /** YYYY-MM-DD. */
+  due: string;
+  /** Link to the module page, only when it's live. */
+  href?: string;
+}
+
+/** Modules for the progress tracker, sorted, linking only live pages. */
+export function trackerItems(
+  entries: readonly {
+    id: string;
+    data: Pick<ModuleData, 'number' | 'status' | 'title' | 'deliverable' | 'due'>;
+  }[],
+): TrackerItem[] {
+  return sortModules(entries).map(({ id, data }) => ({
+    number: data.number,
+    title: data.title,
+    deliverable: data.deliverable,
+    due: isoDay(data.due),
+    ...(data.status === 'live' ? { href: `/learn/${moduleSlug(id)}` } : {}),
+  }));
+}

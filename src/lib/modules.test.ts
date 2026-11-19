@@ -8,6 +8,7 @@ import {
   moduleSlug,
   prevNext,
   sortModules,
+  trackerItems,
   type ModuleLike,
   type ModuleStatus,
 } from './modules';
@@ -165,5 +166,19 @@ describe('rubricLinesFor', () => {
   it('returns nothing for an empty list and throws on an unknown id', () => {
     expect(rubricLinesFor(rubricLines, [])).toEqual([]);
     expect(() => rubricLinesFor(rubricLines, ['bogus'])).toThrow(/bogus/);
+  });
+});
+
+describe('trackerItems', () => {
+  const entry = (number: number, status: ModuleStatus) => ({
+    id: `0${number}-m${number}`,
+    data: { number, status, title: `T${number}`, deliverable: `D${number}`, due: new Date('2027-01-04T00:00:00Z') },
+  });
+
+  it('sorts modules and links only live ones', () => {
+    expect(trackerItems([entry(2, 'draft'), entry(1, 'live')])).toEqual([
+      { number: 1, title: 'T1', deliverable: 'D1', due: '2027-01-04', href: '/learn/m1' },
+      { number: 2, title: 'T2', deliverable: 'D2', due: '2027-01-04' },
+    ]);
   });
 });

@@ -1,8 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Countdown from '../components/Countdown.tsx';
+import ProgressTracker from '../components/ProgressTracker.tsx';
+import { getCollection } from 'astro:content';
 import { deadline } from '../data/competition';
+import { trackerItems } from '../lib/modules';
 import { buttonPrimary, buttonSecondary, fadeDelay, fadeUp, focus } from '../lib/styles';
+
+const tracker = trackerItems(await getCollection('modules'));
 ---
 
 <BaseLayout title="GHIC Stock Pitch Guide">
@@ -36,6 +41,10 @@ import { buttonPrimary, buttonSecondary, fadeDelay, fadeUp, focus } from '../lib
       <div class="mt-8 flex flex-col gap-3 sm:flex-row">
         <a href="/learn" class:list={[buttonPrimary, focus]}>Start here</a>
         <a href="/rules" class:list={[buttonSecondary, focus]}>Read the rules</a>
+      </div>
+
+      <div class="mt-8">
+        <ProgressTracker client:visible variant="next" modules={tracker} />
       </div>
     </div>
   </div>
