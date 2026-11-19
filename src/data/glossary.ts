@@ -11,6 +11,7 @@ export interface GlossaryEntry {
 
 export const glossary = [
   { id: '10-k', term: '10-K' },
+  { id: 'appendix', term: 'Appendix' },
   { id: 'balance-sheet', term: 'Balance sheet' },
   { id: 'cash-flow-statement', term: 'Cash flow statement' },
   { id: 'catalyst', term: 'Catalyst' },
