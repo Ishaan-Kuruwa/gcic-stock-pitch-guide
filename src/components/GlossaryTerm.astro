@@ -1,11 +1,176 @@
 ---
-import type { GlossaryId } from "../data/glossary";
+/**
+ * A finance term that links to its glossary entry and shows the definition
+ * in a small popover:
+ * - Mouse: hover the term (the popover stays open while the pointer is on it).
+ * - Keyboard: focus the term; Escape hides it; Enter opens the glossary.
+ * - Touch: the first tap shows the definition; tapping the term again, or the
+ *   popover's link, opens the glossary. Tapping anywhere else closes it.
+ * Without JavaScript or popover support it's a plain link to the glossary.
+ * Screen readers get the definition as the link's description.
+ */
+import { glossary, type GlossaryId } from '../data/glossary';
 
 interface Props {
   /** Anchor id on /glossary. */
   id: GlossaryId;
 }
 const { id } = Astro.props;
+const entry = glossary.find((e) => e.id === id);
+const definition = entry && 'definition' in entry ? entry.definition : undefined;
+const href = `/glossary#${id}`;
+// Unique per use: the same term can appear more than once on a page.
+const popoverId = `term-${id}-${Math.random().toString(36).slice(2, 8)}`;
 ---
 
-<a href={`/glossary#${id}`}><slot /></a>
+<span class="glossary-term" data-glossary-term
+  ><a href={href} aria-describedby={`${popoverId}-def`} class="decoration-dotted"><slot /></a><span
+    id={popoverId}
+    popover="manual"
+    class="glossary-popover m-0 w-max max-w-[min(20rem,calc(100vw-1rem))] rounded-lg border border-border bg-surface p-3 text-left text-base font-normal not-italic text-text shadow-lift [inset:auto]"
+  >
+    <span id={`${popoverId}-def`}
+      ><strong class="font-bold">{entry?.term ?? id}:</strong>{' '}{definition ?? 'Definition coming soon.'}</span
+    >
+    <a href={href} tabindex="-1" class="mt-2 block w-fit py-1 text-sm font-bold">
+      Open in glossary<span class="sr-only"> ({entry?.term ?? id})</span>
+    </a>
+  </span></span
+>
+
+<script>
+  const SHOW_DELAY_MS = 150;
+  const HIDE_DELAY_MS = 200;
+  const GAP_PX = 6;
+  const EDGE_PX = 8;
+
+  const supportsPopover =
+    typeof HTMLElement !== 'undefined' && 'showPopover' in HTMLElement.prototype;
+
+  if (supportsPopover) {
+    const terms = document.querySelectorAll<HTMLElement>('[data-glossary-term]');
+    const open = new Set<HTMLElement>();
+    let lastPointerType = 'mouse';
+
+    function isOpen(pop: HTMLElement): boolean {
+      return pop.matches(':popover-open');
+    }
+
+    /** Below the term if it fits, otherwise above, kept inside the viewport. */
+    function place(link: HTMLElement, pop: HTMLElement) {
+      const r = link.getBoundingClientRect();
+      const w = pop.offsetWidth;
+      const h = pop.offsetHeight;
+      const vw = document.documentElement.clientWidth;
+      const vh = window.innerHeight;
+      const left = Math.min(Math.max(EDGE_PX, r.left), Math.max(EDGE_PX, vw - w - EDGE_PX));
+      const below = r.bottom + GAP_PX;
+      const top = below + h <= vh - EDGE_PX ? below : Math.max(EDGE_PX, r.top - GAP_PX - h);
+      pop.style.position = 'fixed';
+      pop.style.left = `${left}px`;
+      pop.style.top = `${top}px`;
+    }
+
+    function hideAll(except?: HTMLElement) {
+      for (const pop of open) if (pop !== except) hide(pop);
+    }
+
+    function show(link: HTMLElement, pop: HTMLElement) {
+      hideAll(pop);
+      if (!isOpen(pop)) {
+        try {
+          pop.showPopover();
+        } catch {
+          return;
+        }
+      }
+      open.add(pop);
+      place(link, pop);
+    }
+
+    function hide(pop: HTMLElement) {
+      open.delete(pop);
+      if (isOpen(pop)) {
+        try {
+          pop.hidePopover();
+        } catch {
+          // Already hidden.
+        }
+      }
+    }
+
+    for (const wrapper of terms) {
+      const link = wrapper.querySelector<HTMLAnchorElement>(':scope > a');
+      const pop = wrapper.querySelector<HTMLElement>(':scope > [popover]');
+      if (!link || !pop) continue;
+
+      let showTimer: number | undefined;
+      let hideTimer: number | undefined;
+      let openAtPointerDown = false;
+      const clearTimers = () => {
+        window.clearTimeout(showTimer);
+        window.clearTimeout(hideTimer);
+      };
+
+      // Mouse hover. The wrapper contains the popover, so moving onto it keeps it open.
+      wrapper.addEventListener('pointerenter', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        clearTimers();
+        showTimer = window.setTimeout(() => show(link, pop), SHOW_DELAY_MS);
+      });
+      wrapper.addEventListener('pointerleave', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        clearTimers();
+        if (wrapper.contains(document.activeElement)) return;
+        hideTimer = window.setTimeout(() => hide(pop), HIDE_DELAY_MS);
+      });
+
+      // Keyboard focus.
+      link.addEventListener('focus', () => {
+        clearTimers();
+        if (link.matches(':focus-visible')) show(link, pop);
+      });
+      wrapper.addEventListener('focusout', (e) => {
+        if (!wrapper.contains(e.relatedTarget as Node | null)) hide(pop);
+      });
+
+      // Touch and pen: first tap shows, second tap follows the link.
+      link.addEventListener('pointerdown', (e) => {
+        lastPointerType = e.pointerType;
+        openAtPointerDown = isOpen(pop);
+      });
+      link.addEventListener('click', (e) => {
+        if (lastPointerType === 'mouse') return;
+        if (openAtPointerDown) return;
+        e.preventDefault();
+        clearTimers();
+        show(link, pop);
+      });
+    }
+
+    // Tap or click anywhere else closes.
+    document.addEventListener('pointerdown', (e) => {
+      lastPointerType = e.pointerType;
+      const target = e.target as Element | null;
+      const inside = target?.closest('[data-glossary-term]');
+      for (const pop of open) {
+        if (!inside || !inside.contains(pop)) hide(pop);
+      }
+    });
+
+    // Escape hides without moving focus.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && open.size > 0) hideAll();
+    });
+
+    // Keep an open popover next to its term.
+    const reposition = () => {
+      for (const pop of open) {
+        const link = pop.parentElement?.querySelector<HTMLElement>(':scope > a');
+        if (link) place(link, pop);
+      }
+    };
+    window.addEventListener('scroll', reposition, { passive: true });
+    window.addEventListener('resize', reposition);
+  }
+</script>

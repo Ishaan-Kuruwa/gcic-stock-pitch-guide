@@ -20,6 +20,8 @@
     --gc-tint: #ffffff;
     --gc-border: #999999;
     --gc-focus: #000000;
+    --gc-danger: #000000;
+    --gc-danger-contrast: #ffffff;
     --gc-graph: transparent;
     --gc-shadow-card: none;
     --gc-shadow-lift: none;

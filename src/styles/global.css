@@ -11,6 +11,8 @@
  * - text and muted on bg, surface, and tint: 4.6:1 or better
  * - accent (links) on bg, surface, and tint: 5.1:1 or better
  * - accent-contrast on accent, highlight-contrast on highlight: 7.4:1 or better
+ * - danger (errors) on bg, surface, and tint: 5.5:1 or better; danger-contrast
+ *   on danger: 7.3:1 or better. Always paired with words, never color alone.
  * - focus ring on bg: 7:1 or better. Light mode uses pine because foil on the
  *   light paper is only 1.5:1. Highlight (foil) is a fill, never text on bg.
  * - border is decorative (cards); controls never rely on it alone.
@@ -29,6 +31,8 @@
   --gc-highlight-contrast: #18241d; /* text on highlight */
   --gc-border: #b9cbbe; /* line */
   --gc-focus: #1f5c43;
+  --gc-danger: #a32020; /* errors, such as a pitch over the time limit */
+  --gc-danger-contrast: #ffffff; /* text on danger */
   --gc-graph: rgb(31 92 67 / 0.07); /* chart-paper lines behind the hero */
   --gc-shadow-card: 0 1px 2px rgb(20 40 30 / 0.05), 0 4px 16px rgb(20 40 30 / 0.07);
   --gc-shadow-lift: 0 12px 32px -8px rgb(31 92 67 / 0.35);
@@ -49,6 +53,8 @@
     --gc-highlight-contrast: #18241d;
     --gc-border: #2f5141;
     --gc-focus: #e9c14a;
+    --gc-danger: #f4978e;
+    --gc-danger-contrast: #18241d;
     --gc-graph: rgb(98 184 144 / 0.07);
     /* Shadows vanish on dark backgrounds, so use a hairline and a soft glow. */
     --gc-shadow-card: 0 0 0 1px rgb(255 255 255 / 0.03);
@@ -70,6 +76,8 @@
   --gc-highlight-contrast: #18241d;
   --gc-border: #2f5141;
   --gc-focus: #e9c14a;
+  --gc-danger: #f4978e;
+  --gc-danger-contrast: #18241d;
   --gc-graph: rgb(98 184 144 / 0.07);
   --gc-shadow-card: 0 0 0 1px rgb(255 255 255 / 0.03);
   --gc-shadow-lift: 0 0 0 1px rgb(98 184 144 / 0.4), 0 12px 40px -10px rgb(98 184 144 / 0.35);
@@ -115,6 +123,8 @@
   --color-highlight-contrast: var(--gc-highlight-contrast);
   --color-border: var(--gc-border);
   --color-focus: var(--gc-focus);
+  --color-danger: var(--gc-danger);
+  --color-danger-contrast: var(--gc-danger-contrast);
   --color-graph: var(--gc-graph);
   --shadow-card: var(--gc-shadow-card);
   --shadow-lift: var(--gc-shadow-lift);

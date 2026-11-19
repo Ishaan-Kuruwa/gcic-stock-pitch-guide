@@ -5,13 +5,14 @@ summary: "The one-email rule, file names, final checks"
 rubric: []
 deliverable: "Submitted (aim for Feb 17)"
 due: 2027-02-19
-tools: []
+tools: ['submission-check']
 templates: []
 status: draft
 reviewedBy: ""
 ---
 
 import Part from '../../components/ModulePart.astro';
+import SubmissionCheck from '../../components/SubmissionCheck.tsx';
 import { formatDue } from '../../lib/modules';
 import { formatDate } from '../../lib/format';
 import { deadline, fileNames, registration, submission } from '../../data/competition';
@@ -116,15 +117,9 @@ export const regCloses = <time datetime={registration.closes.date}>{formatDate(r
 </Part>
 
 <Part id="check">
-  - One email to {email}
-  - Report attached as a PDF, named correctly
-  - Slides attached as PowerPoint or PDF (not Keynote), named correctly
-  - No Google Drive links, and no files that need permission
-  - YouTube link in the email, tested while signed out
-  - Names, emails, school, and state in the email body
-  - Partner copied
-  - Every teammate registered
-  - Sent before {deadline.display}, ideally by {target}
+  Tick off each item in your email draft before you send it, ideally by {target}. You can also open the [submission check](/tools/submission-check) on its own page.
+
+  <SubmissionCheck client:visible />
 
   **Common mistakes:** sending the report and slides in separate emails, attachments Gmail quietly turned into Drive links, a Private YouTube video, attaching an old draft, and waiting until the last night.
 </Part>

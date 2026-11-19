@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PitchTimer from '../../components/PitchTimer.tsx';
+import { limits } from '../../data/competition';
+import { LIMIT_MS, WARN_MS, formatClock } from '../../lib/pitchTimer';
+import { eyebrow, fadeUp } from '../../lib/styles';
+---
+
+<BaseLayout
+  title="Pitch Timer"
+  description="Set a time budget for each part of your video pitch and rehearse against the clock."
+>
+  <header class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}><a href="/tools" class="text-muted">Tools</a></p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">Pitch Timer</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      Plan how long each part of your pitch should take, then rehearse out loud with the clock.
+      Your video must be under {limits.videoMaxMinutes} minutes. The timer warns you at {formatClock(WARN_MS)}{' '}
+      and shows an error at {formatClock(LIMIT_MS)}.
+    </p>
+    <p class="mt-3 text-sm text-muted">
+      The timer only keeps time. What you say has to be your own. See module 9,
+      <a href="/learn/pitch-on-video">Pitch on video</a>.
+    </p>
+  </header>
+
+  <div class="mt-10">
+    <PitchTimer client:visible />
+  </div>
+</BaseLayout>

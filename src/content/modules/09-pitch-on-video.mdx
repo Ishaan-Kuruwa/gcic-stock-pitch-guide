@@ -11,19 +11,23 @@ rubric:
   - video-delivery
 deliverable: "Rehearsal with Ishaan, then final video"
 due: 2027-02-12
-tools: []
+tools: ['pitch-timer']
 templates: []
 status: draft
 reviewedBy: ""
 ---
 
 import Part from '../../components/ModulePart.astro';
+import PitchTimer from '../../components/PitchTimer.tsx';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import { formatDue } from '../../lib/modules';
 import { categoryPoints } from '../../lib/facts';
 import { guidance, limits } from '../../data/competition';
+import { pitchPlan } from '../../data/pitchPlan';
+import { budgetEndsAt, formatClock } from '../../lib/pitchTimer';
 
 export const editing = guidance.videoEditing;
+export const planEnds = budgetEndsAt(pitchPlan);
 
 <Part id="why">
   The video is worth {categoryPoints('video')} points, and it's where judges see you, not just your work. They score whether you present clearly and stay within the time limit, know your company, come across as professional, and make eye contact. Pace also counts in the presentation score.
@@ -85,18 +89,26 @@ export const editing = guidance.videoEditing;
   Slide numbers match module 8's outline.
 
   <div class="overflow-x-auto" role="region" aria-label="An eight-minute plan for the Costco pitch" tabindex="0">
-
-  | Part | Slides | Time | Ends at |
-  | --- | --- | --- | --- |
-  | Title and recommendation | 1–2 | 0:45 | 0:45 |
-  | The business | 3–4 | 1:00 | 1:45 |
-  | Industry and competition | 5–6 | 1:00 | 2:45 |
-  | Financials | 7–8 | 1:30 | 4:15 |
-  | Valuation | 9–10 | 1:30 | 5:45 |
-  | Risks | 11 | 1:00 | 6:45 |
-  | ESG and AI | 12 | 0:45 | 7:30 |
-  | Recap | 13 | 0:30 | 8:00 |
-
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Part</th>
+          <th scope="col">Slides</th>
+          <th scope="col">Time</th>
+          <th scope="col">Ends at</th>
+        </tr>
+      </thead>
+      <tbody>
+        {pitchPlan.map((part, i) => (
+          <tr>
+            <td>{part.label}</td>
+            <td>{part.slides}</td>
+            <td>{formatClock(part.budgetSec * 1000)}</td>
+            <td>{formatClock((planEnds[i] ?? 0) * 1000)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   </div>
 
   ### A sample outline for one slide
@@ -129,6 +141,12 @@ export const editing = guidance.videoEditing;
   9. **Tick off module 9** in your [progress tracker](/learn#progress) and send the link to your mentor.
 
   **Deliverable:** your rehearsal with Ishaan, then your final video on YouTube. Due by <time datetime={new Date(frontmatter.due).toISOString().slice(0, 10)}>{formatDue(new Date(frontmatter.due))}</time>.
+
+  ### Pitch timer
+
+  You can also open the [pitch timer](/tools/pitch-timer) on its own page.
+
+  <PitchTimer client:visible headingLevel={4} />
 </Part>
 
 <Part id="check">
