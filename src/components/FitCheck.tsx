@@ -67,7 +67,7 @@ export default function FitCheck() {
         autocomplete="off"
         value={company}
         onInput={(e) => onCompany(e.currentTarget.value)}
-        class={`mt-1 w-full rounded-md border-2 border-border bg-surface p-3 text-text ${focus}`}
+        class={`mt-1 w-full rounded-md border-2 border-muted bg-surface p-3 text-text ${focus}`}
       />
 
       <ol class="mt-6 grid gap-4">
@@ -134,7 +134,7 @@ export default function FitCheck() {
         <button
           type="button"
           onClick={onReset}
-          class={`mt-4 border-2 border-border text-text hover:border-accent ${smallButton} ${focus}`}
+          class={`mt-4 border-2 border-muted text-text hover:border-accent ${smallButton} ${focus}`}
         >
           Check another company
         </button>

@@ -25,7 +25,7 @@ const interestLabel = new Map(interests.map((i) => [i.id, i.label]));
 const byTicker = new Map(companies.map((c) => [c.ticker, c]));
 
 const chipBase = `rounded-full border-2 px-4 py-2 text-base transition-colors duration-200 ${focus}`;
-const chipOff = 'border-border bg-surface text-text hover:border-accent';
+const chipOff = 'border-muted bg-surface text-text hover:border-accent';
 const chipOn = 'border-accent bg-accent font-bold text-accent-contrast';
 
 const segBase = `px-4 py-2 text-base transition-colors duration-200 ${focus}`;
@@ -138,14 +138,14 @@ export default function Matchmaker() {
 
         <fieldset class="mt-6">
           <legend class="mb-3 text-lg font-bold">What kind of company sounds more fun to pitch?</legend>
-          <div class="inline-flex flex-wrap overflow-hidden rounded-md border-2 border-border">
+          <div class="inline-flex flex-wrap overflow-hidden rounded-md border-2 border-muted">
             {styleChoices.map(({ id, label }, i) => (
               <button
                 key={id}
                 type="button"
                 aria-pressed={style === id}
                 onClick={() => setStyle(id)}
-                class={`${segBase} ${style === id ? segOn : segOff} ${i > 0 ? 'border-l-2 border-border' : ''}`}
+                class={`${segBase} ${style === id ? segOn : segOff} ${i > 0 ? 'border-l-2 border-muted' : ''}`}
               >
                 {label}
               </button>
@@ -237,7 +237,7 @@ export default function Matchmaker() {
                 type="button"
                 onClick={() => updateShortlist([])}
                 disabled={empty}
-                class={`${smallButton} border-2 border-border text-text enabled:hover:border-accent ${focus}`}
+                class={`${smallButton} border-2 border-muted text-text enabled:hover:border-accent ${focus}`}
               >
                 Clear shortlist
               </button>
@@ -256,7 +256,7 @@ export default function Matchmaker() {
                   readOnly
                   rows={3}
                   value={fallbackText}
-                  class={`mt-1 w-full rounded-md border-2 border-border bg-surface p-3 text-text ${focus}`}
+                  class={`mt-1 w-full rounded-md border-2 border-muted bg-surface p-3 text-text ${focus}`}
                 />
               </div>
             )}
