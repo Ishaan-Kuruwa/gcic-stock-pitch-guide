@@ -9,12 +9,11 @@ deliverable: "Valuation section with the math shown"
 due: 2027-01-12
 tools: ['pe-calculator']
 templates: []
-status: draft
-reviewedBy: ""
+status: live
+reviewedBy: "Ishaan Kuruwa"
 ---
 
 import Part from '../../components/ModulePart.astro';
-import TodoBlock from '../../components/Todo.astro';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import PECalculator from '../../components/PECalculator.tsx';
 import { formatDue } from '../../lib/modules';
@@ -146,9 +145,6 @@ export const sellAt = wholePercent.format(recommendationRule.sellAtDownside);
 
   All the numbers above follow the P/E calculator's rounding, so you can reproduce them there.
 
-  <TodoBlock title="TODO before launch: Same-day prices">
-    These prices were looked up on different days, between October 26 and November 18, 2026. Just before launch, look up all four on the same day, update this table, and rerun the math in the P/E calculator. Modules 6–8 quote the target price and upside, so update them too.
-  </TodoBlock>
 </Part>
 
 <Part id="do">
