@@ -4,6 +4,7 @@ import {
   assertParts,
   formatDue,
   isoDay,
+  moduleHref,
   moduleSchema,
   moduleSlug,
   prevNext,
@@ -180,5 +181,26 @@ describe('trackerItems', () => {
       { number: 1, title: 'T1', deliverable: 'D1', due: '2027-01-04', href: '/learn/m1' },
       { number: 2, title: 'T2', deliverable: 'D2', due: '2027-01-04' },
     ]);
+  });
+});
+
+describe('moduleHref', () => {
+  const entries: ModuleLike[] = [
+    { id: '05-value-the-company', data: { number: 5, status: 'draft' } },
+    { id: '06-thesis-risks-esg-ai', data: { number: 6, status: 'live' } },
+    { id: '07-finish-the-report', data: { number: 7, status: 'reviewed' } },
+  ];
+
+  it('links a live module', () => {
+    expect(moduleHref(entries, 6)).toBe('/learn/thesis-risks-esg-ai');
+  });
+
+  it('gives no link for draft or reviewed modules', () => {
+    expect(moduleHref(entries, 5)).toBeUndefined();
+    expect(moduleHref(entries, 7)).toBeUndefined();
+  });
+
+  it('throws for an unknown module number', () => {
+    expect(() => moduleHref(entries, 42)).toThrow('No module with number 42');
   });
 });

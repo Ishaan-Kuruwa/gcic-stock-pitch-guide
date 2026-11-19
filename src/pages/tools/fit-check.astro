@@ -1,4 +1,5 @@
 ---
+import ModuleRef from '../../components/ModuleRef.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import FitCheck from '../../components/FitCheck.tsx';
 import { eyebrow, fadeUp } from '../../lib/styles';
@@ -13,7 +14,7 @@ import { eyebrow, fadeUp } from '../../lib/styles';
     <h1 class="mt-2 text-5xl font-black sm:text-6xl">Fit Check</h1>
     <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
     <p class="mt-5 text-lg leading-relaxed text-muted">
-      These are the five questions from module 1, "Pick your company." Answer them for each company
+      These are the five questions from module 1, <ModuleRef number={1}>"Pick your company."</ModuleRef> Answer them for each company
       on your shortlist.
     </p>
   </header>

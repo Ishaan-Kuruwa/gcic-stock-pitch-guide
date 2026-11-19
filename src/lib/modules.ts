@@ -151,3 +151,14 @@ export function trackerItems(
     ...(data.status === 'live' ? { href: `/learn/${moduleSlug(id)}` } : {}),
   }));
 }
+
+/**
+ * Link for module `number`, only when it's live; undefined for drafts, so pages
+ * show the name as plain text instead of sending students to an unfinished page.
+ * Throws if no module has that number, so a typo fails the build.
+ */
+export function moduleHref(entries: readonly ModuleLike[], number: number): string | undefined {
+  const entry = entries.find((m) => m.data.number === number);
+  if (!entry) throw new Error(`No module with number ${number}.`);
+  return entry.data.status === 'live' ? `/learn/${moduleSlug(entry.id)}` : undefined;
+}
