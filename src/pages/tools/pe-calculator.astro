@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PECalculator from '../../components/PECalculator.tsx';
+import { eyebrow, fadeUp } from '../../lib/styles';
+---
+
+<BaseLayout
+  title="P/E Calculator"
+  description="Work out a target price from forecast EPS and a target P/E, with peer averages and a sensitivity grid."
+>
+  <header class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}><a href="/tools" class="text-muted">Tools</a></p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">P/E Calculator</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      Enter your own numbers to get a <a href="/glossary#target-price">target price</a>, upside or
+      downside, and a sensitivity grid. It shows the formulas with your numbers so you can copy the
+      math into your report. Use it with module 5, <a href="/learn/value-the-company">"Value the company."</a>
+    </p>
+  </header>
+
+  <div class="mt-10">
+    <PECalculator client:visible />
+  </div>
+</BaseLayout>

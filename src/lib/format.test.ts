@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { deadline } from '../data/competition';
 import { targetSubmitDate } from '../data/club';
-import { formatDate, formatMonthDay, formatShortDate } from './format';
+import {
+  formatCurrency,
+  formatDate,
+  formatMonthDay,
+  formatMultiple,
+  formatPercent,
+  formatShortDate,
+} from './format';
 
 // Tests run with TZ=America/Los_Angeles (vitest.config.ts), so these catch day shifts.
 describe('formatDate', () => {
@@ -31,5 +38,31 @@ describe('club targetSubmitDate', () => {
       new Date(deadline.iso).getTime(),
     );
     expect(formatMonthDay(targetSubmitDate)).toBe('February 17');
+  });
+});
+
+describe('formatCurrency', () => {
+  it('shows dollars to the cent with separators', () => {
+    expect(formatCurrency(93.6)).toBe('$93.60');
+    expect(formatCurrency(1234.5)).toBe('$1,234.50');
+    expect(formatCurrency(0.01)).toBe('$0.01');
+  });
+});
+
+describe('formatPercent', () => {
+  it('shows one decimal', () => {
+    expect(formatPercent(0.17)).toBe('17.0%');
+    expect(formatPercent(-0.031)).toBe('-3.1%');
+    expect(formatPercent(0)).toBe('0.0%');
+    expect(formatPercent(1.234)).toBe('123.4%');
+  });
+});
+
+describe('formatMultiple', () => {
+  it('shows up to two decimals without padding', () => {
+    expect(formatMultiple(18)).toBe('18');
+    expect(formatMultiple(17.78)).toBe('17.78');
+    expect(formatMultiple(17.5)).toBe('17.5');
+    expect(formatMultiple(1250)).toBe('1,250');
   });
 });
