@@ -18,34 +18,124 @@ reviewedBy: ""
 ---
 
 import Part from '../../components/ModulePart.astro';
-import TodoBlock from '../../components/Todo.astro';
+import GlossaryTerm from '../../components/GlossaryTerm.astro';
+import { formatDue } from '../../lib/modules';
+import { categoryPoints } from '../../lib/facts';
+import { limits } from '../../data/competition';
 
 <Part id="why">
-  <TodoBlock title="TODO: Why it matters">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  The video is worth {categoryPoints('video')} points, and it's where judges see you, not just your work. They score whether you present clearly and stay within the time limit, know your company, come across as professional, and make eye contact. Pace also counts in the presentation score.
+
+  A great report with a nervous, rushed video loses points that a calm, practiced team keeps. The good news: this is the most improvable skill in the whole competition. Every practice run makes the next one better.
 </Part>
 
 <Part id="learn">
-  <TodoBlock title="TODO: Learn">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  ### The rules for the video
+
+  - It must be under {limits.videoMaxMinutes} minutes. Going over can cost you points.
+  - It must show you giving the presentation, with your slides in the video.
+  - Don't speed it up.
+  - Editing isn't required, and YIS doesn't recommend it. One continuous take is fine.
+  - It goes on YouTube, and judges must be able to open the link.
+
+  ### Plan for eight minutes
+
+  Aim for about eight minutes. That leaves a safe margin under the limit, since most people talk slower on camera than in practice, or stumble and restart a sentence. Give each part of your pitch a time budget (see the example below), and use the pitch timer to rehearse against it.
+
+  ### Outline, don't script
+
+  Write an outline of what you'll say for each slide: the point, the key number, and why it matters. Don't write a word-for-word script to read; reading makes you sound flat and pulls your eyes off the camera. Practice until you can give the pitch from your outline.
+
+  If you have a partner, split the slides so each of you presents about half, and plan clean handoffs: "Now Sam will walk through our valuation."
+
+  ### Delivery
+
+  - **Look at the camera**, not at your own face on screen. That's how eye contact works on video.
+  - **Slow down.** Pause after each key number so it lands.
+  - **Open strong:** state your recommendation and <GlossaryTerm id="target-price">target price</GlossaryTerm> in the first 30 seconds.
+  - **Explain, don't read:** say why each bullet matters.
+  - **Stand or sit up straight**, and dress as you would for an interview.
+
+  ### Recording setup
+
+  The easiest way to show both you and your slides is a video call recording: start a call by yourself, share your slides, turn on your camera, and record. Screen recorders that add a webcam bubble also work.
+
+  - **Quiet room**, with the door closed and notifications off
+  - **Light in front of you**, like facing a window, not behind you
+  - **Camera at eye level:** stack books under a laptop if needed
+  - **Test first:** record 30 seconds and watch it back for sound and lighting
+
+  ### Uploading to YouTube
+
+  - Set visibility to **Unlisted or Public, never Private**; a Private video can't be opened by judges
+  - Title it with your names, school, and company
+  - Test the link in a private browser window while signed out. If it plays there, judges can open it
+  - Keep it up and viewable from February through May, when judging ends
+
+  ### Rehearse with feedback
+
+  Before recording your final video, every mentored team does a rehearsal with Ishaan. Bring your slides and give the full pitch as if it were the real thing.
 </Part>
 
 <Part id="see">
-  <TodoBlock title="TODO: See it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  ### An eight-minute plan for the Costco pitch
+
+  Slide numbers match module 8's outline.
+
+  <div class="overflow-x-auto" role="region" aria-label="An eight-minute plan for the Costco pitch" tabindex="0">
+
+  | Part | Slides | Time | Ends at |
+  | --- | --- | --- | --- |
+  | Title and recommendation | 1–2 | 0:45 | 0:45 |
+  | The business | 3–4 | 1:00 | 1:45 |
+  | Industry and competition | 5–6 | 1:00 | 2:45 |
+  | Financials | 7–8 | 1:30 | 4:15 |
+  | Valuation | 9–10 | 1:30 | 5:45 |
+  | Risks | 11 | 1:00 | 6:45 |
+  | ESG and AI | 12 | 0:45 | 7:30 |
+  | Recap | 13 | 0:30 | 8:00 |
+
+  </div>
+
+  ### A sample outline for one slide
+
+  Slide 6, Scale and loyalty are Costco's moat:
+
+  > - **Point:** Costco's advantages are scale and member loyalty.
+  > - **Number:** 11.09% gross margin, much lower than most retailers; 92.3% renewal rate.
+  > - **Why it matters:** rivals can't easily match its prices, and members keep paying fees year after year.
+  > - **Transition:** "So how does that show up in the numbers?"
+
+  Notice it's notes, not sentences. The words come out a little differently each time you practice, which is what makes it sound natural.
+
+  ### A strong opening, out loud
+
+  > "Hi, we're Jordan Lee and Sam Patel from Green Hope High School in North Carolina. We rate Costco a Hold, with a target price of $1,027.80, about 3% above today's price. Costco is an outstanding business, but we think the stock already reflects most of that. Here's why."
+
+  In under 20 seconds, the judges know who you are, your call, your number, and the shape of your argument.
 </Part>
 
 <Part id="do">
-  <TodoBlock title="TODO: Do it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. **Set your time budget** in the pitch timer, aiming for about eight minutes total.
+  2. **Write an outline for each slide:** point, number, why it matters, and transition.
+  3. **If you have a partner**, split the slides and practice your handoffs.
+  4. **Rehearse at least three times** with the timer. Cut anything that keeps running over.
+  5. **Do your rehearsal with Ishaan** and note the feedback.
+  6. **Set up and test your recording:** quiet room, light in front, camera at eye level, slides and camera both visible.
+  7. **Record your final video** in one take if you can. Don't speed it up.
+  8. **Upload to YouTube** as Unlisted or Public, and test the link while signed out.
+  9. **Tick off module 9** in your [progress tracker](/learn#progress) and send the link to your mentor.
+
+  **Deliverable:** your rehearsal with Ishaan, then your final video on YouTube. Due by <time datetime={new Date(frontmatter.due).toISOString().slice(0, 10)}>{formatDue(new Date(frontmatter.due))}</time>.
 </Part>
 
 <Part id="check">
-  <TodoBlock title="TODO: Check it">
-    Content for this part hasn't been written yet.
-  </TodoBlock>
+  1. Is your video under {limits.videoMaxMinutes} minutes, at normal speed?
+  2. Can viewers see both you and your slides?
+  3. Did you state your recommendation and target price in the first 30 seconds?
+  4. Did you look at the camera, not the screen, most of the time?
+  5. Does the YouTube link play in a private, signed-out browser window?
+  6. Could you answer a judge's question about any number in your pitch?
+
+  **Common mistakes:** reading slides word for word, running over the time limit, a Private YouTube video judges can't open, a dark or noisy recording, burying the recommendation at the end, and recording the final video the night before the deadline.
 </Part>
