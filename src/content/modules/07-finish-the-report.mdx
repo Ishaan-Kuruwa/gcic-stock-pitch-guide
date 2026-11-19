@@ -7,12 +7,11 @@ deliverable: "Revised report as a PDF"
 due: 2027-01-29
 tools: []
 templates: []
-status: draft
-reviewedBy: ""
+status: live
+reviewedBy: "Ishaan Kuruwa"
 ---
 
 import Part from '../../components/ModulePart.astro';
-import TodoBlock from '../../components/Todo.astro';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import { formatDue } from '../../lib/modules';
 import {
@@ -36,7 +35,7 @@ export const reportFileName = fileNames.find((f) => f.item === 'report')?.patter
 <Part id="learn">
   ### Start from the YIS template
 
-  YIS {guidance.reportTemplate} using its <a href={reportTemplateUrl}>Stock Pitch Report Template</a>. Move your drafts into it, or into GHIC's copy of it, so your layout matches what judges expect.
+  YIS {guidance.reportTemplate} using its <a href={reportTemplateUrl}>Stock Pitch Report Template</a>. Move your drafts into it, so your layout matches what judges expect.
 
   ### The first page
 
