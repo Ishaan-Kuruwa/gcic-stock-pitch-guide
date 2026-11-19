@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FitCheck from '../../components/FitCheck.tsx';
+import { eyebrow, fadeUp } from '../../lib/styles';
+---
+
+<BaseLayout
+  title="Fit Check"
+  description="Run a company through module 1's five questions before you claim it."
+>
+  <header class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}><a href="/tools" class="text-muted">Tools</a></p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">Fit Check</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      These are the five questions from module 1, "Pick your company." Answer them for each company
+      on your shortlist.
+    </p>
+  </header>
+
+  <div class="mt-10">
+    <FitCheck client:visible />
+  </div>
+</BaseLayout>
