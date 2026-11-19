@@ -69,7 +69,12 @@ export const glossary = [
     definition:
       "EPS calculated as if stock options and similar rights had all become shares. It's the standard version analysts use.",
   },
-  { id: 'dividend', term: 'Dividend' },
+  {
+    id: 'dividend',
+    term: 'Dividend',
+    definition:
+      'A cash payment a company makes to its shareholders out of its profits, often every quarter.',
+  },
   {
     id: 'downside',
     term: 'Downside',
@@ -283,7 +288,12 @@ export const glossary = [
     term: 'Share price',
     definition: "What one share of a company's stock costs on the market at a given moment.",
   },
-  { id: 'sustainability-report', term: 'Sustainability report' },
+  {
+    id: 'sustainability-report',
+    term: 'Sustainability report',
+    definition:
+      "A report a company publishes about its environmental, social, and governance practices, such as its energy use, emissions, and treatment of employees. It's written by the company itself, so check its claims against other sources.",
+  },
   {
     id: 'switching-costs',
     term: 'Switching costs',
