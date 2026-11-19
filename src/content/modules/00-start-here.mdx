@@ -22,11 +22,13 @@ import {
   rubricTotalPoints,
   submission,
 } from '../../data/competition';
-import { formatDate } from '../../lib/format';
+import { targetSubmitDate } from '../../data/club';
+import { formatDate, formatMonthDay } from '../../lib/format';
 import { formatDue } from '../../lib/modules';
 import { categoryPoints, deadlineEastern, formatUsd } from '../../lib/facts';
 
 export const fee = formatUsd(entryFee.amountUsd);
+export const target = <time datetime={targetSubmitDate}>{formatMonthDay(targetSubmitDate)}</time>;
 
 <Part id="why">
 
@@ -52,7 +54,7 @@ You turn in three things:
 2. **A slide deck.** A PowerPoint or PDF file that summarizes your report. Keynote files aren't accepted, so if you use Google Slides, download it as a PowerPoint.
 3. **A video.** A YouTube link to a video of you presenting your pitch with your slides on screen. It must be under {limits.videoMaxMinutes} minutes, and you can't speed it up. You don't need to edit it.
 
-All three go in one email to <a href={`mailto:${submission.email}`}>{submission.email}</a> by {deadline.display}. That's Pacific time, which means {deadlineEastern} here in North Carolina. Don't plan around that, though. GHIC's target is February 17, so a bad internet night or a broken file never costs you your entry.
+All three go in one email to <a href={`mailto:${submission.email}`}>{submission.email}</a> by {deadline.display}. That's Pacific time, which means {deadlineEastern} here in North Carolina. Don't plan around that, though. GHIC's target is {target}, so a bad internet night or a broken file never costs you your entry.
 
 ### How you're scored
 
@@ -102,7 +104,7 @@ Until the example is ready, the required first-page fields are listed on the [Ru
 
 1. **Decide on your team.** Talk with your partner, if you have one, and agree that you're entering together. You can also enter alone.
 2. **Register on {registration.via}** once registration opens. Every team member pays the {fee} fee.
-3. **Put two dates in your calendar:** February 17 (GHIC's target) and {deadline.display} (the real deadline).
+3. **Put two dates in your calendar:** {target} (GHIC's target) and {deadline.display} (the real deadline).
 4. **Tick off module 0** in your progress tracker.
 
 **Deliverable:** your team is registered. Due by <time datetime={new Date(frontmatter.due).toISOString().slice(0, 10)}>{formatDue(new Date(frontmatter.due))}</time>.
