@@ -1,7 +1,7 @@
-# GCIC Stock Pitch Guide
+# GHIC Stock Pitch Guide
 
 ## What this is
-A website that teaches high school beginners in GCIC (Green Hope Capital Investment Club)
+A website that teaches high school beginners in GHIC (Green Hope Investing Club)
 how to complete the YIS Global Stock Pitch Competition: pick a company, research it,
 value it, write a report (10 pages max plus appendix), build a slide deck, record a video
 pitch under 10 minutes, and submit by Feb 19, 2027, 11:59 PM Pacific.
