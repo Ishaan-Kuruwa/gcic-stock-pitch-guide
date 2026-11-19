@@ -5,7 +5,7 @@ interface Props {
 const { title = 'TODO' } = Astro.props;
 ---
 
-<aside class="my-4 rounded border-2 border-dashed border-border bg-surface p-4" role="note">
-  <p class="font-semibold">{title}</p>
+<aside class="my-4 rounded-lg border-2 border-dashed border-border border-l-highlight bg-surface p-4 border-l-[6px] [border-left-style:solid]" role="note">
+  <p class="font-bold">{title}</p>
   <div class="text-muted"><slot /></div>
 </aside>

@@ -2,33 +2,41 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Countdown from '../components/Countdown.tsx';
 import { deadline } from '../data/competition';
+import { buttonPrimary, buttonSecondary, fadeDelay, fadeUp, focus } from '../lib/styles';
 ---
 
 <BaseLayout title="GHIC Stock Pitch Guide">
-  <h1 class="text-3xl sm:text-4xl font-bold">Your guide to the YIS Stock Pitch Competition</h1>
-  <p class="mt-4 text-lg">
-    New to investing? This site walks GHIC members through the competition one step at a time:
-    picking a company, researching it, figuring out what it's worth, and turning that into a
-    report, a slide deck, and a video pitch.
-  </p>
-  <p class="mt-2">
-    The site teaches and gives you tools to calculate, organize, and check your work. Everything
-    you submit has to be written by you.
-  </p>
+  <div class="relative isolate">
+    <!-- Decorative backdrop: chart-paper grid and a soft glow behind the intro -->
+    <div aria-hidden="true" class="decorative pointer-events-none absolute -top-14 left-1/2 -z-10 h-[30rem] w-screen -translate-x-1/2 overflow-hidden sm:h-[34rem]">
+      <div class="bg-graph-paper absolute inset-0"></div>
+      <div
+        class="absolute -top-48 left-1/2 h-[26rem] w-[52rem] max-w-[200vw] -translate-x-1/2 rounded-full bg-accent/15 blur-3xl"
+      >
+      </div>
+    </div>
 
-  <div class="mt-8">
-    <Countdown client:visible deadlineIso={deadline.iso} deadlineDisplay={deadline.display} />
-  </div>
+    <section class:list={['max-w-prose', fadeUp]}>
+      <h1 class="text-5xl font-black sm:text-6xl lg:text-7xl">Your guide to the YIS Stock Pitch Competition</h1>
+      <div aria-hidden="true" class="decorative mt-6 h-1.5 w-24 rounded-full bg-highlight"></div>
+      <p class="mt-6 text-lg leading-relaxed text-muted sm:text-xl">
+        New to investing? This site walks GHIC members through the competition one step at a time:
+        picking a company, researching it, figuring out what it's worth, and turning that into a
+        report, a slide deck, and a video pitch.
+      </p>
+      <p class="mt-3 text-muted">
+        The site teaches and gives you tools to calculate, organize, and check your work. Everything
+        you submit has to be written by you.
+      </p>
+    </section>
 
-  <div class="mt-8 flex flex-col sm:flex-row gap-3">
-    <a
-      href="/learn"
-      class="inline-block rounded-lg bg-accent px-6 py-3 text-center text-lg font-bold text-accent-contrast no-underline hover:underline"
-    >
-      Start here
-    </a>
-    <a href="/rules" class="inline-block rounded-lg border-2 border-accent px-6 py-3 text-center text-lg font-bold no-underline hover:underline">
-      Read the rules
-    </a>
+    <div class:list={['mt-10 max-w-prose', fadeUp]} style={fadeDelay(2, 80)}>
+      <Countdown client:visible deadlineIso={deadline.iso} deadlineDisplay={deadline.display} />
+
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a href="/learn" class:list={[buttonPrimary, focus]}>Start here</a>
+        <a href="/rules" class:list={[buttonSecondary, focus]}>Read the rules</a>
+      </div>
+    </div>
   </div>
 </BaseLayout>

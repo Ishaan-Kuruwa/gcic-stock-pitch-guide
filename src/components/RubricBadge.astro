@@ -11,8 +11,8 @@ const lines = rubricLinesFor(rubricLines, ids);
 const total = rubricTotal(lines);
 ---
 
-<section aria-labelledby="rubric-badge" class="rubric-badge rounded border border-border bg-surface p-4">
-  <h2 id="rubric-badge" class="text-lg font-bold">
+<section aria-labelledby="rubric-badge" class="rubric-badge rounded-xl border border-border bg-surface p-5 shadow-card">
+  <h2 id="rubric-badge" class="text-2xl font-extrabold">
     {
       lines.length > 0 ? (
         <>Points at stake: {total} of {rubricTotalPoints}</>
@@ -23,11 +23,11 @@ const total = rubricTotal(lines);
   </h2>
   {
     lines.length > 0 ? (
-      <ul class="mt-2 space-y-1">
+      <ul class="mt-3 divide-y divide-border">
         {lines.map((line) => (
-          <li class="flex justify-between gap-4">
+          <li class="flex justify-between gap-4 py-2">
             <a href={`/rules#rubric-${line.id}`}>{line.label}</a>
-            <span class="shrink-0 tabular-nums">
+            <span class="shrink-0 font-bold tabular-nums">
               {line.points} <span class="sr-only">points</span><span aria-hidden="true">pts</span>
             </span>
           </li>

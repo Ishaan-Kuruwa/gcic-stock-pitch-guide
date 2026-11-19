@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import RubricBadge from '../components/RubricBadge.astro';
 import { MODULE_PARTS, formatDue, isoDay, type ModuleData } from '../lib/modules';
+import { card, eyebrow, fadeUp, focus, lift } from '../lib/styles';
 
 /** A neighbor link, or "coming-soon" when a live page has no live module on that side. */
 export type ModuleNavTarget = { href: string; number: number; title: string } | 'coming-soon';
@@ -15,69 +16,92 @@ interface Props {
 const { data, prev, next } = Astro.props;
 const isLive = data.status === 'live';
 const statusLabel = data.status === 'reviewed' ? 'Reviewed, not yet live' : 'Draft';
+const sidebarHeading = 'text-xs font-bold uppercase tracking-wider text-muted';
+const navCard = ['relative block h-full rounded-xl border border-border bg-surface p-5 no-underline shadow-card', lift];
 ---
 
 <BaseLayout title={`Module ${data.number}: ${data.title}`} description={data.summary} noindex={!isLive}>
   <article>
-    <header>
-      <p class="text-sm font-semibold uppercase tracking-wide text-muted">Module {data.number}</p>
-      <h1 class="text-3xl font-bold">{data.title}</h1>
-      <p class="mt-2 text-lg">{data.summary}</p>
+    <header class:list={['max-w-prose', fadeUp]}>
+      <p class={eyebrow}>Module {data.number}</p>
+      <h1 class="mt-2 text-5xl font-black sm:text-6xl">{data.title}</h1>
+      <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+      <p class="mt-5 text-lg leading-relaxed text-muted sm:text-xl">{data.summary}</p>
 
       {
         !isLive && (
-          <p role="note" class="mt-4 rounded border-2 border-dashed border-border bg-surface p-3">
+          <p role="note" class="mt-5 rounded-lg border-2 border-dashed border-border bg-surface p-4">
             <strong>{statusLabel}.</strong> This module is still being written and isn't on the{' '}
             <a href="/learn">learning path</a> yet.
           </p>
         )
       }
-
-      <dl class="module-facts mt-6 grid gap-4 sm:grid-cols-2">
-        <div>
-          <dt class="font-bold">Deliverable</dt>
-          <dd>{data.deliverable}</dd>
-        </div>
-        <div>
-          <dt class="font-bold">Due</dt>
-          <dd><time datetime={isoDay(data.due)}>{formatDue(data.due)}</time></dd>
-        </div>
-      </dl>
-
-      <div class="mt-6">
-        <RubricBadge ids={data.rubric} />
-      </div>
-
-      <nav aria-label="Parts of this module" class="no-print mt-6">
-        <ol class="flex flex-wrap gap-2">
-          {
-            MODULE_PARTS.map((part, i) => (
-              <li>
-                <a
-                  href={`#part-${part.id}`}
-                  class="inline-block rounded border border-border px-3 py-1 no-underline hover:underline"
-                >
-                  {i + 1}. {part.title}
-                </a>
-              </li>
-            ))
-          }
-        </ol>
-      </nav>
     </header>
 
-    <slot />
+    <!-- On large screens the facts, rubric, and parts list move to a right-hand
+         column. On phones they stay above the content, in the same order. -->
+    <div class="mt-10 grid gap-10 print:block lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-14">
+      <div class="flex flex-col gap-6 lg:col-start-2 lg:row-start-1">
+        <dl class:list={['module-facts grid gap-4 sm:grid-cols-2 lg:grid-cols-1', card]}>
+          <div>
+            <dt class={sidebarHeading}>Deliverable</dt>
+            <dd class="mt-1">{data.deliverable}</dd>
+          </div>
+          <div>
+            <dt class={sidebarHeading}>Due</dt>
+            <dd class="mt-1 font-display text-2xl font-extrabold">
+              <time datetime={isoDay(data.due)}>{formatDue(data.due)}</time>
+            </dd>
+          </div>
+        </dl>
+
+        <RubricBadge ids={data.rubric} />
+
+        <nav aria-label="Parts of this module" class="no-print lg:sticky lg:top-24">
+          <ol class="flex flex-wrap gap-2 lg:flex-col">
+            {
+              MODULE_PARTS.map((part, i) => (
+                <li>
+                  <a
+                    href={`#part-${part.id}`}
+                    class:list={[
+                      'inline-flex items-center gap-2 rounded-full border border-border bg-surface py-1.5 pr-4 pl-1.5 font-bold text-text no-underline transition-colors duration-200 hover:border-accent hover:text-accent',
+                      focus,
+                    ]}
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="grid size-7 place-items-center rounded-full bg-tint font-display text-base font-extrabold text-accent"
+                    >
+                      {i + 1}
+                    </span>
+                    <span class="sr-only">{i + 1}. </span>
+                    {part.title}
+                  </a>
+                </li>
+              ))
+            }
+          </ol>
+        </nav>
+      </div>
+
+      <div class="min-w-0 max-w-prose lg:col-start-1 lg:row-start-1">
+        <slot />
+      </div>
+    </div>
   </article>
 
-  <nav aria-label="Module navigation" class="no-print mt-12 border-t border-border pt-6">
+  <nav aria-label="Module navigation" class="no-print mt-section border-t border-border pt-8">
     <ul class="grid gap-4 sm:grid-cols-2">
       <li>
         {
           prev === 'coming-soon' ? (
-            <span class="text-muted">Previous: coming soon</span>
+            <p class="rounded-xl border-2 border-dashed border-border p-5 text-muted">Previous: coming soon</p>
           ) : prev ? (
-            <a href={prev.href} rel="prev" class="inline-block py-1">
-              <span aria-hidden="true">← </span>Previous: Module {prev.number}, {prev.title}
+            <a href={prev.href} rel="prev" class:list={[navCard, focus]}>
+              <span class={eyebrow}><span aria-hidden="true">← </span>Previous: Module {prev.number}</span>
+              <span class="sr-only">, </span>
+              <span class="mt-1 block font-display text-2xl font-extrabold text-accent">{prev.title}</span>
             </a>
           ) : null
         }
@@ -85,10 +109,12 @@ const statusLabel = data.status === 'reviewed' ? 'Reviewed, not yet live' : 'Dra
       <li class="sm:text-right">
         {
           next === 'coming-soon' ? (
-            <span class="text-muted">Next: coming soon</span>
+            <p class="rounded-xl border-2 border-dashed border-border p-5 text-muted">Next: coming soon</p>
           ) : next ? (
-            <a href={next.href} rel="next" class="inline-block py-1">
-              Next: Module {next.number}, {next.title}<span aria-hidden="true"> →</span>
+            <a href={next.href} rel="next" class:list={[navCard, focus]}>
+              <span class={eyebrow}>Next: Module {next.number}<span aria-hidden="true"> →</span></span>
+              <span class="sr-only">, </span>
+              <span class="mt-1 block font-display text-2xl font-extrabold text-accent">{next.title}</span>
             </a>
           ) : null
         }

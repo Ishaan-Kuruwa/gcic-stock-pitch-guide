@@ -3,6 +3,7 @@ import '../styles/global.css';
 import '../styles/print.css';
 import { isCurrentPath } from '../lib/nav';
 import { officialLinks } from '../data/competition';
+import { focus } from '../lib/styles';
 
 interface Props {
   title: string;
@@ -42,27 +43,34 @@ const guidelines = officialLinks.find((link) => link.id === 'guidelines')!;
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
     <title>{pageTitle}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Big+Shoulders+Display:wght@600;700;800;900&display=swap"
+    />
   </head>
-  <body class="flex min-h-screen flex-col bg-bg text-text">
+  <body class="flex min-h-screen flex-col overflow-x-clip bg-bg font-sans text-text antialiased">
     <a
       href="#main"
-      class="no-print sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-contrast"
+      class="no-print sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-contrast"
     >
       Skip to main content
     </a>
 
-    <header class="border-b border-border bg-surface">
+    <!-- Sticky from sm up only, so it doesn't take up a small phone screen. -->
+    <header class="site-header z-40 border-b border-border bg-bg/85 backdrop-blur-md sm:sticky sm:top-0">
       <div
-        class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3"
+        class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-gutter py-3 sm:px-8"
       >
         <a
           href="/"
-          class="text-lg font-bold text-text no-underline"
+          class:list={['rounded font-display text-2xl font-extrabold tracking-wide text-text no-underline', focus]}
           aria-current={isCurrentPath(currentPath, '/') ? 'page' : undefined}
         >
-          {siteName}
+          GHIC Stock <span class="text-accent">Pitch</span> Guide
         </a>
-        <nav aria-label="Main" class="no-print">
+        <nav aria-label="Main" class="no-print -mx-3 sm:mx-0">
           <ul class="flex flex-wrap gap-x-1 gap-y-1">
             {
               navLinks.map(({ href, label }) => {
@@ -73,8 +81,12 @@ const guidelines = officialLinks.find((link) => link.id === 'guidelines')!;
                       href={href}
                       aria-current={current ? 'page' : undefined}
                       class:list={[
-                        'inline-block rounded px-3 py-2 no-underline hover:underline',
-                        current ? 'bg-accent font-semibold text-accent-contrast' : 'text-text',
+                        'relative inline-block rounded-md px-3 py-2 font-bold no-underline transition-colors duration-200 hover:bg-tint hover:text-text',
+                        // Current page: ink text with a foil bar underneath
+                        current
+                          ? 'text-text after:absolute after:inset-x-3 after:bottom-0.5 after:h-1 after:rounded-full after:bg-highlight'
+                          : 'text-muted',
+                        focus,
                       ]}
                     >
                       {label}
@@ -88,18 +100,18 @@ const guidelines = officialLinks.find((link) => link.id === 'guidelines')!;
       </div>
     </header>
 
-    <main id="main" tabindex="-1" class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+    <main id="main" tabindex="-1" class="mx-auto w-full max-w-6xl flex-1 px-gutter pt-10 pb-section sm:px-8 sm:pt-14">
       <slot />
     </main>
 
     <footer class="no-print border-t border-border bg-surface">
-      <div class="mx-auto max-w-5xl px-4 py-6 text-sm text-muted">
+      <div class="mx-auto max-w-6xl px-gutter py-8 text-sm text-muted sm:px-8">
         <p>
           A study guide made by GHIC (Green Hope Investing Club) for its members.
         </p>
         <p class="mt-1">
           An independent GHIC study guide, not an official YIS resource.{' '}
-          <a href={guidelines.url}>Official YIS guidelines and rubric</a>
+          <a href={guidelines.url} class="font-bold">Official YIS guidelines and rubric</a>
         </p>
       </div>
     </footer>

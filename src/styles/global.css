@@ -2,67 +2,149 @@
 
 /*
  * Theme tokens. Raw values live in --gc-* variables; Tailwind utilities
- * (bg-bg, text-text, text-muted, border-border, ...) read them via @theme.
+ * (bg-bg, text-text, text-muted, border-border, bg-highlight, ...) read them
+ * via @theme inline. Colors come from the GHIC kickoff page palette.
  * Dark mode follows the OS by default. A future toggle can force a theme by
  * setting data-theme="light" or data-theme="dark" on <html>.
- * All text/background pairs meet WCAG AA (4.5:1) in both themes.
+ *
+ * Contrast (WCAG AA), checked in both themes:
+ * - text and muted on bg, surface, and tint: 4.6:1 or better
+ * - accent (links) on bg, surface, and tint: 5.1:1 or better
+ * - accent-contrast on accent, highlight-contrast on highlight: 7.4:1 or better
+ * - focus ring on bg: 7:1 or better. Light mode uses pine because foil on the
+ *   light paper is only 1.5:1. Highlight (foil) is a fill, never text on bg.
+ * - border is decorative (cards); controls never rely on it alone.
  */
 :root {
   color-scheme: light;
-  --gc-bg: #ffffff;
-  --gc-surface: #f3f5f8;
-  --gc-text: #1a1f2b;
-  --gc-muted: #4a5565;
-  --gc-accent: #0b5cad;
-  --gc-accent-contrast: #ffffff;
-  --gc-border: #c9d1db;
-  --gc-focus: #0b5cad;
+  --gc-bg: #f5f7f1; /* paper: page background */
+  --gc-surface: #ffffff; /* card */
+  --gc-tint: #d3e0d6; /* sage: tinted panels, number badges */
+  --gc-text: #18241d; /* ink */
+  --gc-muted: #536459; /* secondary text */
+  --gc-accent: #1f5c43; /* pine: links, primary buttons */
+  --gc-accent-strong: #143b2b; /* pine-deep: hover, dark bands */
+  --gc-accent-contrast: #ffffff; /* text on accent */
+  --gc-highlight: #f2c94c; /* foil: accent bars, current-page marker */
+  --gc-highlight-contrast: #18241d; /* text on highlight */
+  --gc-border: #b9cbbe; /* line */
+  --gc-focus: #1f5c43;
+  --gc-graph: rgb(31 92 67 / 0.07); /* chart-paper lines behind the hero */
+  --gc-shadow-card: 0 1px 2px rgb(20 40 30 / 0.05), 0 4px 16px rgb(20 40 30 / 0.07);
+  --gc-shadow-lift: 0 12px 32px -8px rgb(31 92 67 / 0.35);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --gc-bg: #0f1419;
-    --gc-surface: #1a212b;
-    --gc-text: #e6edf3;
-    --gc-muted: #a9b4c2;
-    --gc-accent: #6cb6ff;
-    --gc-accent-contrast: #0f1419;
-    --gc-border: #334155;
-    --gc-focus: #6cb6ff;
+    --gc-bg: #10201a;
+    --gc-surface: #17302a;
+    --gc-tint: #1f3a2e;
+    --gc-text: #e7efe9;
+    --gc-muted: #a2b7a9;
+    --gc-accent: #62b890;
+    --gc-accent-strong: #0b1712;
+    --gc-accent-contrast: #0c1a14;
+    --gc-highlight: #e9c14a;
+    --gc-highlight-contrast: #18241d;
+    --gc-border: #2f5141;
+    --gc-focus: #e9c14a;
+    --gc-graph: rgb(98 184 144 / 0.07);
+    /* Shadows vanish on dark backgrounds, so use a hairline and a soft glow. */
+    --gc-shadow-card: 0 0 0 1px rgb(255 255 255 / 0.03);
+    --gc-shadow-lift: 0 0 0 1px rgb(98 184 144 / 0.4), 0 12px 40px -10px rgb(98 184 144 / 0.35);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --gc-bg: #0f1419;
-  --gc-surface: #1a212b;
-  --gc-text: #e6edf3;
-  --gc-muted: #a9b4c2;
-  --gc-accent: #6cb6ff;
-  --gc-accent-contrast: #0f1419;
-  --gc-border: #334155;
-  --gc-focus: #6cb6ff;
+  --gc-bg: #10201a;
+  --gc-surface: #17302a;
+  --gc-tint: #1f3a2e;
+  --gc-text: #e7efe9;
+  --gc-muted: #a2b7a9;
+  --gc-accent: #62b890;
+  --gc-accent-strong: #0b1712;
+  --gc-accent-contrast: #0c1a14;
+  --gc-highlight: #e9c14a;
+  --gc-highlight-contrast: #18241d;
+  --gc-border: #2f5141;
+  --gc-focus: #e9c14a;
+  --gc-graph: rgb(98 184 144 / 0.07);
+  --gc-shadow-card: 0 0 0 1px rgb(255 255 255 / 0.03);
+  --gc-shadow-lift: 0 0 0 1px rgb(98 184 144 / 0.4), 0 12px 40px -10px rgb(98 184 144 / 0.35);
+}
+
+@theme {
+  --font-sans: "Atkinson Hyperlegible", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+
+  /* Layout spacing (Tailwind's 0.25rem scale still works alongside these) */
+  --spacing-gutter: 1.25rem; /* page side padding on phones */
+  --spacing-section: 5rem; /* between page sections */
+  --spacing-card: 1.5rem; /* card padding */
+  --container-prose: 44rem; /* comfortable reading width */
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem; /* buttons */
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem; /* cards */
+
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  /* `backwards` so the animation never holds on to properties after it ends */
+  --animate-fade-up: fade-up 0.5s var(--ease-soft) backwards;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
 }
 
 @theme inline {
   --color-bg: var(--gc-bg);
   --color-surface: var(--gc-surface);
+  --color-tint: var(--gc-tint);
   --color-text: var(--gc-text);
   --color-muted: var(--gc-muted);
   --color-accent: var(--gc-accent);
+  --color-accent-strong: var(--gc-accent-strong);
   --color-accent-contrast: var(--gc-accent-contrast);
+  --color-highlight: var(--gc-highlight);
+  --color-highlight-contrast: var(--gc-highlight-contrast);
   --color-border: var(--gc-border);
   --color-focus: var(--gc-focus);
+  --color-graph: var(--gc-graph);
+  --shadow-card: var(--gc-shadow-card);
+  --shadow-lift: var(--gc-shadow-lift);
 }
 
 @layer base {
   html {
     background-color: var(--gc-bg);
     color: var(--gc-text);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-sans);
+    font-size: 106.25%; /* 17px body, as on the kickoff page */
     line-height: 1.6;
     -webkit-text-size-adjust: 100%;
+    /* Room for the header when jumping to an anchor. Sticky from sm up. */
+    scroll-padding-top: 1rem;
+  }
+
+  @media (min-width: 40rem) {
+    html {
+      scroll-padding-top: 6rem;
+    }
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    line-height: 1.05;
+    letter-spacing: 0.005em;
+    text-wrap: balance;
   }
 
   a {
@@ -78,49 +160,163 @@
   }
 }
 
+/* Faint chart-paper grid that fades out toward the bottom. Decorative only. */
+@utility bg-graph-paper {
+  background-image:
+    linear-gradient(to right, var(--color-graph) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-graph) 1px, transparent 1px);
+  background-size: 2rem 2rem;
+  mask-image: radial-gradient(ellipse 80% 100% at 50% 0%, black 30%, transparent 75%);
+}
+
 /*
  * Text inside module parts comes from MDX (plain Markdown), which Tailwind's
- * reset leaves unstyled. :where() keeps specificity at zero so utility
- * classes on individual elements still win.
+ * reset leaves unstyled. `.module-part :where(...)` has class specificity, so
+ * it beats the reset (which would remove list markers and heading sizes), and
+ * these sit in the base layer, so utility classes on an element still win.
  */
 @layer base {
-  :where(.module-part) :where(p, ul, ol, details) {
+  .module-part :where(p, ul, ol, details, table) {
     margin-top: 1rem;
   }
 
-  :where(.module-part) :where(h3) {
-    margin-top: 2rem;
-    font-size: 1.25rem;
-    font-weight: 700;
-    line-height: 1.4;
+  .module-part :where(h3) {
+    margin-top: 2.25rem;
+    font-size: 1.6rem;
+    font-weight: 800;
   }
 
-  :where(.module-part) :where(ul) {
+  .module-part :where(ul) {
     list-style: disc;
     padding-left: 1.5rem;
   }
 
-  :where(.module-part) :where(ol) {
+  .module-part :where(ol) {
     list-style: decimal;
     padding-left: 1.5rem;
   }
 
-  :where(.module-part) :where(li + li) {
+  .module-part :where(li + li) {
     margin-top: 0.5rem;
   }
 
-  :where(.module-part) :where(details > summary) {
+  .module-part :where(li)::marker {
+    color: var(--gc-muted);
+  }
+
+  .module-part :where(strong) {
+    font-weight: 700;
+  }
+
+  .module-part :where(details > summary) {
     margin-top: 0;
   }
 }
 
+/*
+ * <details data-animate>: card-style disclosure with a rotating arrow.
+ * The summary stays a native, keyboard-operable control (Tab, Enter, Space).
+ */
+@layer components {
+  details[data-animate] {
+    border: 1px solid var(--gc-border);
+    border-radius: var(--radius-lg);
+    background: var(--gc-surface);
+    box-shadow: var(--gc-shadow-card);
+  }
+
+  details[data-animate] > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.875rem 1.25rem;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    font-weight: 700;
+    list-style: none;
+  }
+
+  details[data-animate] > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details[data-animate] > summary::after {
+    /* Empty alt text so screen readers skip the arrow */
+    content: "▾" / "";
+    color: var(--gc-accent);
+    transition: transform 0.3s var(--ease-soft);
+  }
+
+  details[data-animate][open] > summary::after {
+    transform: rotate(180deg);
+  }
+
+  details[data-animate] > :not(summary) {
+    margin-inline: 1.25rem;
+  }
+
+  details[data-animate] > :last-child:not(summary) {
+    margin-bottom: 1.25rem;
+  }
+
+  details[data-animate][open] > summary {
+    border-bottom: 1px solid var(--gc-border);
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+}
+
+/* Motion. Everything here is skipped when the visitor asks for less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  /* Smooth open/close for <details data-animate>. Browsers without
+     ::details-content or interpolate-size just open instantly. */
+  :root {
+    interpolate-size: allow-keywords;
+  }
+
+  details[data-animate]::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size 0.35s var(--ease-soft),
+      content-visibility 0.35s allow-discrete;
+  }
+
+  details[data-animate][open]::details-content {
+    block-size: auto;
+  }
+
+  /* Cross-fade between pages (cross-document view transitions, no JavaScript).
+     The header is named so it holds still while the page below it fades. */
+  @view-transition {
+    navigation: auto;
+  }
+
+  ::view-transition-group(root) {
+    animation-duration: 0.3s;
+    animation-timing-function: var(--ease-soft);
+  }
+}
+
+.site-header {
+  view-transition-name: site-header;
+}
+
+/* Safety net for visitors who ask for less motion: stop every animation and
+   transition, including ones added later. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
-  *::after {
+  *::after,
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

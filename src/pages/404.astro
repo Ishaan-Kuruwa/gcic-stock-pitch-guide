@@ -1,9 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { buttonPrimary, eyebrow, fadeUp, focus } from '../lib/styles';
 ---
 
 <BaseLayout title="Page not found">
-  <h1 class="mb-4 text-3xl font-bold">Page not found</h1>
-  <p class="mb-4">This page doesn't exist yet, or the link is wrong.</p>
-  <p><a href="/">Go to the home page</a></p>
+  <div class:list={['max-w-prose py-8', fadeUp]}>
+    <p class={eyebrow}>404</p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">Page not found</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg text-muted">This page doesn't exist yet, or the link is wrong.</p>
+    <p class="mt-8"><a href="/" class:list={[buttonPrimary, focus]}>Go to the home page</a></p>
+  </div>
 </BaseLayout>

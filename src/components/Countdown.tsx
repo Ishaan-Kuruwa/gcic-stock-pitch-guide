@@ -37,8 +37,8 @@ export default function Countdown({ deadlineIso, deadlineDisplay }: Props) {
   const countdown = now === null ? null : getCountdown(deadlineMs, now);
 
   return (
-    <section aria-labelledby="countdown-heading" class="rounded-lg border border-border bg-surface p-4 sm:p-6">
-      <h2 id="countdown-heading" class="text-lg font-bold">
+    <section aria-labelledby="countdown-heading" class="rounded-xl border border-border bg-surface p-5 shadow-card sm:p-card">
+      <h2 id="countdown-heading" class="font-display text-3xl font-extrabold">
         Submission deadline
       </h2>
       <p class="mt-1">
@@ -46,7 +46,7 @@ export default function Countdown({ deadlineIso, deadlineDisplay }: Props) {
       </p>
 
       {countdown?.isPast ? (
-        <p class="mt-4 text-lg font-bold">The deadline has passed. No late submissions.</p>
+        <p class="mt-4 font-display text-2xl font-extrabold">The deadline has passed. No late submissions.</p>
       ) : countdown ? (
         <>
           <dl class="mt-4 grid grid-cols-4 gap-2 text-center" aria-live="off">
@@ -58,9 +58,9 @@ export default function Countdown({ deadlineIso, deadlineDisplay }: Props) {
                 ['Seconds', countdown.seconds],
               ] as const
             ).map(([label, value]) => (
-              <div key={label} class="flex flex-col-reverse rounded bg-bg p-2 border border-border">
-                <dt class="text-xs sm:text-sm text-muted">{label}</dt>
-                <dd class="text-2xl sm:text-4xl font-bold tabular-nums">
+              <div key={label} class="flex flex-col-reverse rounded-lg border border-border bg-tint px-1 py-3">
+                <dt class="text-xs font-bold uppercase text-muted sm:text-sm sm:tracking-wide">{label}</dt>
+                <dd class="font-display text-4xl font-black leading-none tabular-nums text-accent sm:text-6xl">
                   {numberFormat.format(value)}
                 </dd>
               </div>

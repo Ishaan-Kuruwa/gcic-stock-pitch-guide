@@ -1,11 +1,15 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Todo from '../components/Todo.astro';
+import { fadeUp } from '../lib/styles';
 ---
 
 <BaseLayout title="Tools">
-  <h1 class="text-3xl font-bold">Tools</h1>
-  <Todo title="Tools coming soon">
-    <p>The tools haven't been added yet. In the meantime, read the <a href="/rules">rules</a>.</p>
-  </Todo>
+  <div class:list={['max-w-prose', fadeUp]}>
+    <h1 class="text-5xl font-black sm:text-6xl">Tools</h1>
+    <div aria-hidden="true" class="decorative mt-5 mb-8 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <Todo title="Tools coming soon">
+      <p>The tools haven't been added yet. In the meantime, read the <a href="/rules">rules</a>.</p>
+    </Todo>
+  </div>
 </BaseLayout>
