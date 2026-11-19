@@ -14,10 +14,10 @@ interface Props {
 const {
   title,
   noindex = false,
-  description = 'A step-by-step guide for GCIC members entering the YIS Global Stock Pitch Competition.',
+  description = 'A step-by-step guide for GHIC members entering the YIS Global Stock Pitch Competition.',
 } = Astro.props;
 
-const siteName = 'GCIC Stock Pitch Guide';
+const siteName = 'GHIC Stock Pitch Guide';
 const pageTitle = title === siteName ? siteName : `${title} | ${siteName}`;
 
 const navLinks = [
@@ -95,10 +95,10 @@ const guidelines = officialLinks.find((link) => link.id === 'guidelines')!;
     <footer class="no-print border-t border-border bg-surface">
       <div class="mx-auto max-w-5xl px-4 py-6 text-sm text-muted">
         <p>
-          A study guide made by GCIC (Green Hope Capital Investment Club) for its members.
+          A study guide made by GHIC (Green Hope Investing Club) for its members.
         </p>
         <p class="mt-1">
-          An independent GCIC study guide, not an official YIS resource.{' '}
+          An independent GHIC study guide, not an official YIS resource.{' '}
           <a href={guidelines.url}>Official YIS guidelines and rubric</a>
         </p>
       </div>
