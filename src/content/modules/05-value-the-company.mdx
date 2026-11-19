@@ -19,8 +19,12 @@ import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import PECalculator from '../../components/PECalculator.tsx';
 import { formatDue } from '../../lib/modules';
 import { officialLinks } from '../../data/competition';
+import { recommendationRule } from '../../data/club';
 
 export const intrinsicValueModelUrl = officialLinks.find((link) => link.id === 'intrinsic-value-model')?.url;
+export const wholePercent = new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 0 });
+export const buyAt = wholePercent.format(recommendationRule.buyAtUpside);
+export const sellAt = wholePercent.format(recommendationRule.sellAtDownside);
 
 <Part id="why">
   A great company isn't always a great investment. If everyone already knows how good it is, its stock price may already reflect that, leaving little room to rise. <GlossaryTerm id="valuation">Valuation</GlossaryTerm> is how you decide whether the price is too high, too low, or about right.
@@ -78,9 +82,7 @@ export const intrinsicValueModelUrl = officialLinks.find((link) => link.id === '
 
   Before running the numbers, decide how much upside you need to recommend a buy, so the result can't sway the rule.
 
-  <TodoBlock title="TODO (officers): GHIC's buy rule">
-    Set GHIC's suggested rule here, for example "buy at 10% upside or more, sell at any downside, and explain anything in between."
-  </TodoBlock>
+  **GHIC's rule:** recommend **Buy** if your target price is at least {buyAt} above today's price, **Sell** if it's at least {sellAt} below, and **Hold** in between. If you land in the Hold range, explain clearly what would change your call.
 
   ### Going further
 
@@ -88,47 +90,45 @@ export const intrinsicValueModelUrl = officialLinks.find((link) => link.id === '
 </Part>
 
 <Part id="see">
-  <TodoBlock title="TODO before launch: Real share price and peer P/Es">
-    The share price and peer P/Es below are illustrative round numbers chosen for teaching. Replace them with real figures and their date close to launch, and rerun the math in the P/E calculator. The EPS figures are real, from Costco's fiscal 2026 10-K.
-  </TodoBlock>
-
   ### Starting point
 
   <div class="overflow-x-auto" role="region" aria-label="Starting point for the Costco valuation" tabindex="0">
 
   | | Value | Source |
   | --- | --- | --- |
-  | Current share price | $1,000.00 | Illustrative |
+  | Current share price | $997.42 | Stock Analysis, October 27, 2026 |
   | Fiscal 2026 diluted EPS | $20.76 | Costco 10-K |
-  | Current P/E | 48.17 | $1,000.00 ÷ $20.76 |
+  | Current P/E | 48.05 | $997.42 ÷ $20.76 |
 
   </div>
 
   **Step 1: Forecast EPS.** Costco's EPS grew 10.0% in fiscal 2025 and 14.0% in fiscal 2026. A cautious analyst might assume 10% growth next year, the lower of the two:
 
-  Forecast EPS = $20.76 × 1.10 = $22.84
+  Forecast EPS = $20.76 × 1.10 = **$22.84**
 
-  **Step 2: Choose a target P/E.** Comparable retailers (illustrative values):
+  **Step 2: Choose a target P/E.** Comparable retailers, using each company's trailing P/E:
 
   <div class="overflow-x-auto" role="region" aria-label="P/E ratios of comparable retailers" tabindex="0">
 
-  | Company | P/E |
-  | --- | --- |
-  | Walmart | 38 |
-  | BJ's Wholesale | 22 |
-  | Target | 15 |
-  | Average | 25.00 |
-  | Median | 22.00 |
+  | Company | P/E | As of |
+  | --- | --- | --- |
+  | Walmart | 46.42 | November 13, 2026 |
+  | BJ's Wholesale | 23.04 | October 26, 2026 |
+  | Target | 16.64 | November 18, 2026 |
+  | **Average** | **28.70** | |
+  | **Median** | **23.04** | |
 
   </div>
 
-  Costco trades far above its peers. Using the peer average of 25 would give a target of $571.00, a 42.9% drop, but that ignores why investors pay more for Costco: steady growth, a 92.3% renewal rate, and a strong balance sheet. This analyst chooses 45, a little below Costco's current 48.17, assuming its premium holds but shrinks slightly.
+  Sources: Stock Analysis (Walmart, BJ's), Fox Business (Target).
+
+  Costco's P/E is close to Walmart's, but about twice BJ's and nearly three times Target's. Using the peer average of 28.70 would give a target of $655.51, a 34.3% drop, but that treats Costco like an average retailer. Investors pay more for Costco because of its steady growth, its 92.3% renewal rate, and its strong balance sheet, and Walmart's similar P/E shows the market pays up for large, steady retailers. This analyst chooses 45, a little below Costco's current 48.05, assuming its premium holds but shrinks slightly.
 
   **Step 3: Target price and upside.**
 
-  Target price = $22.84 × 45 = $1,027.80
+  Target price = $22.84 × 45 = **$1,027.80**
 
-  Upside = ($1,027.80 − $1,000.00) ÷ $1,000.00 = 2.8%
+  Upside = ($1,027.80 − $997.42) ÷ $997.42 = **3.0%**
 
   ### Testing the assumptions
 
@@ -136,15 +136,19 @@ export const intrinsicValueModelUrl = officialLinks.find((link) => link.id === '
 
   | Target P/E | Target price | Upside |
   | --- | --- | --- |
-  | 40 | $913.60 | −8.6% |
-  | 45 | $1,027.80 | 2.8% |
-  | 50 | $1,142.00 | 14.2% |
+  | 40 | $913.60 | −8.4% |
+  | 45 | $1,027.80 | 3.0% |
+  | 50 | $1,142.00 | 14.5% |
 
   </div>
 
-  **What this teaches.** With these assumptions, Costco looks close to fairly priced: a great company, but the price already reflects much of that. The answer swings from downside to strong upside depending on one choice, the P/E, so a real report would spend most of its valuation section defending that number. That's exactly the debate module 1 pointed to: is the stock too expensive for how fast the company is growing?
+  **What this teaches.** Under GHIC's rule, 3.0% upside makes this a Hold: a great company, but the price already reflects much of that. The answer swings from a Hold to a Buy depending on one choice, the P/E, so a real report would spend most of its valuation section defending that number. That's exactly the debate module 1 pointed to: is the stock too expensive for how fast the company is growing?
 
   All the numbers above follow the P/E calculator's rounding, so you can reproduce them there.
+
+  <TodoBlock title="TODO before launch: Same-day prices">
+    These prices were looked up on different days, between October 26 and November 18, 2026. Just before launch, look up all four on the same day, update this table, and rerun the math in the P/E calculator. Modules 6–8 quote the target price and upside, so update them too.
+  </TodoBlock>
 </Part>
 
 <Part id="do">
