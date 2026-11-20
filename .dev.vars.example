@@ -1,0 +1,6 @@
+# Copy this file to .dev.vars (never commit .dev.vars) and fill in the values.
+# See docs/accounts-setup.md for where each one comes from.
+BETTER_AUTH_URL=http://localhost:4321
+BETTER_AUTH_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=

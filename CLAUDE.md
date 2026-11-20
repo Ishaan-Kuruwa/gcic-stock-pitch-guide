@@ -19,20 +19,29 @@ UI text is plain and friendly. Any finance term links to the glossary.
 - NEVER write module teaching content from scratch. Format content you are given into
   MDX. Where content is missing, leave a visible TODO block.
 - No analytics, ads, or third-party scripts (Google Fonts is fine).
-- v1 collects no personal data. Progress is stored in localStorage only.
+- The site stores only what accounts need: Google name and email (no profile picture,
+  no Google tokens). No birthdates, phone numbers, or photos. Account features stay
+  behind sign-in and noindex. A /privacy page must exist before the Google app moves
+  out of Testing. Progress is stored in localStorage only.
 
 ## Stack
 - Astro (current stable), TypeScript in strict mode, Tailwind CSS
 - Modules are MDX files in an Astro content collection (src/content/modules)
 - Interactive tools are Preact islands, hydrated with client:visible
 - Pure logic lives in src/lib and is tested with Vitest
-- Static build deployed to Cloudflare
+- Pages are prerendered (static). A few on-demand routes (`export const prerender = false`:
+  /account, /account/sign-in, /account/sign-out, /api/auth/*) run on the Cloudflare
+  adapter as a Worker, with Better Auth (Google only) and D1 via Drizzle
+  (src/db/schema.ts, drizzle/migrations). See docs/accounts-setup.md.
 
 ## Commands
 - npm run dev: local server
 - npm run build: production build
 - npm run check: astro check (types)
 - npm test: Vitest
+- npm run types: regenerate worker-configuration.d.ts after changing wrangler.jsonc
+- npm run db:generate: write a migration after changing src/db/schema.ts
+- npm run db:migrate:local / db:migrate:remote: apply migrations to D1
 
 ## Conventions
 - Calculations are pure functions in src/lib/*.ts with tests; components only render.
