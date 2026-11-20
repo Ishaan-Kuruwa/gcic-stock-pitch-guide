@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAuth } from '../../auth';
+import { deleteAccount } from '../../db/accounts';
+import { getDb } from '../../db/client';
+import { redirectWithCookies } from '../../lib/cookies';
+import { denied, requireUser } from '../../lib/guards';
+import { crossSiteResponse, isSameOrigin } from '../../lib/origin';
+import { clearNavHint } from '../../lib/session';
+import { buttonSecondary, card, eyebrow, fadeUp, focus } from '../../lib/styles';
+
+export const prerender = false;
+
+// Only needs a signed-in user (not a finished profile), so someone who
+// can't get past /join can still delete their account.
+const access = requireUser(Astro.locals);
+if (!access.ok) return denied(Astro, access);
+
+let failed = false;
+if (Astro.request.method === 'POST') {
+  if (!isSameOrigin(Astro.request)) return crossSiteResponse();
+  try {
+    // Rows first, so the account is gone even if sign-out hiccups. Better
+    // Auth's signOut copes with a session that no longer exists and still
+    // returns the cleared session cookie.
+    await deleteAccount(getDb(), access.user.id);
+    clearNavHint(Astro.cookies);
+    const res = await getAuth().api.signOut({ headers: Astro.request.headers, asResponse: true });
+    return redirectWithCookies('/account?deleted=1', res.headers);
+  } catch (error) {
+    console.error('Account deletion failed', error);
+    failed = true;
+  }
+}
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+---
+
+<BaseLayout title="Delete my account" description="Delete your GHIC Stock Pitch Guide account." noindex>
+  <div class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}>Account</p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">Delete my account</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      This deletes your name, grade, role and sign-in records from this site, and signs you out. It
+      can't be undone. You can sign up again later with the club code.
+    </p>
+
+    {
+      failed && (
+        <p role="alert" class="mt-6 rounded-md border-2 border-danger p-4 font-bold text-danger">
+          Error: We couldn't delete your account. Please try again.
+        </p>
+      )
+    }
+
+    <section aria-labelledby="confirm" class:list={['mt-8', card]}>
+      <h2 id="confirm" class="text-3xl font-extrabold">Are you sure?</h2>
+      <p class="mt-3">
+        Signed in as <strong class="break-words">{access.user.email}</strong>.
+      </p>
+      <div class="mt-6 flex flex-wrap items-center gap-4">
+        <form method="post">
+          <button
+            type="submit"
+            class:list={[
+              'inline-flex cursor-pointer items-center justify-center rounded-md bg-danger px-6 py-3 text-lg font-bold text-danger-contrast',
+              focus,
+            ]}
+          >
+            Yes, delete my account
+          </button>
+        </form>
+        <a href="/account" class:list={[buttonSecondary, focus]}>Cancel</a>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

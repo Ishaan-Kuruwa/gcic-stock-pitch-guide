@@ -4,17 +4,20 @@
  * page or a client component.
  *
  * Settings live in src/lib/authOptions.ts. The secrets come from Wrangler:
- * .dev.vars locally, `npx wrangler secret put` in production.
+ * .dev.vars locally, `npx wrangler secret put` in production. ADMIN_EMAILS
+ * (comma-separated) is a secret too, so admin emails aren't in the public repo.
  */
 import { env } from 'cloudflare:workers';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from '@better-auth/drizzle-adapter';
-import { drizzle } from 'drizzle-orm/d1';
+import { syncRole } from './db/accounts';
+import { getDb } from './db/client';
 import { authSchema } from './db/schema';
 import { buildAuthOptions } from './lib/authOptions';
+import { parseEmailList } from './lib/roles';
 
 function createAuth() {
-  const db = drizzle(env.DB, { schema: authSchema });
+  const db = getDb();
   return betterAuth(
     buildAuthOptions(
       {
@@ -24,6 +27,9 @@ function createAuth() {
         googleClientSecret: env.GOOGLE_CLIENT_SECRET,
       },
       drizzleAdapter(db, { provider: 'sqlite', schema: authSchema }),
+      // Re-check the role on every sign-in, so adding or removing an email in
+      // ADMIN_EMAILS or the mentor list takes effect.
+      (userId) => syncRole(db, userId, parseEmailList(env.ADMIN_EMAILS)),
     ),
   );
 }

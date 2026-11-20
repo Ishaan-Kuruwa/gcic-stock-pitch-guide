@@ -1,0 +1,115 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { addMentor, listMentors, removeMentor } from '../../db/accounts';
+import { getDb } from '../../db/client';
+import { denied, requireRole } from '../../lib/guards';
+import { crossSiteResponse, isSameOrigin } from '../../lib/origin';
+import { looksLikeEmail, normalizeEmail } from '../../lib/roles';
+import { buttonPrimary, buttonSecondary, card, eyebrow, fadeUp, focus, input } from '../../lib/styles';
+
+export const prerender = false;
+
+const access = requireRole(Astro.locals, 'admin');
+if (!access.ok) return denied(Astro, access);
+
+const db = getDb();
+
+// Post/Redirect/Get: each form posts here, then we redirect with a status.
+if (Astro.request.method === 'POST') {
+  if (!isSameOrigin(Astro.request)) return crossSiteResponse();
+  const form = await Astro.request.formData();
+  const action = form.get('action');
+  const raw = form.get('email');
+  const email = typeof raw === 'string' ? normalizeEmail(raw) : '';
+  let status = 'invalid';
+  if (looksLikeEmail(email)) {
+    if (action === 'add') {
+      await addMentor(db, email);
+      status = 'added';
+    } else if (action === 'remove') {
+      await removeMentor(db, email);
+      status = 'removed';
+    }
+  }
+  const params = new URLSearchParams({ status });
+  if (status !== 'invalid') params.set('email', email);
+  return Astro.redirect(`/admin/mentors?${params}`, 303);
+}
+
+const mentors = await listMentors(db);
+const status = Astro.url.searchParams.get('status');
+const statusEmail = Astro.url.searchParams.get('email') ?? '';
+const message =
+  status === 'added'
+    ? `Added ${statusEmail} as a mentor.`
+    : status === 'removed'
+      ? `Removed ${statusEmail}. They are a member (mentee) now.`
+      : null;
+const isError = status === 'invalid';
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+---
+
+<BaseLayout title="Mentors" description="Manage GHIC mentors." noindex>
+  <div class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}>Admin</p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">Mentors</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      People whose Google email is on this list get the mentor role when they sign in, and don't
+      need the club code. Removing an email takes effect right away.
+    </p>
+
+    {message && <p role="status" class="mt-6 rounded-md bg-tint p-4 font-bold break-words">{message}</p>}
+    {
+      isError && (
+        <p role="alert" class="mt-6 rounded-md border-2 border-danger p-4 font-bold text-danger">
+          Error: That doesn't look like an email address. Please check it and try again.
+        </p>
+      )
+    }
+
+    <section aria-labelledby="add-mentor" class:list={['mt-8', card]}>
+      <h2 id="add-mentor" class="text-3xl font-extrabold">Add a mentor</h2>
+      <form method="post" class="mt-4">
+        <input type="hidden" name="action" value="add" />
+        <label for="mentor-email" class="block text-lg font-bold">Mentor's Google email</label>
+        <input
+          id="mentor-email"
+          name="email"
+          type="email"
+          autocomplete="off"
+          required
+          class:list={['mt-1', input]}
+        />
+        <button type="submit" class:list={['mt-4', buttonPrimary, focus, 'cursor-pointer']}>Add mentor</button>
+      </form>
+    </section>
+
+    <section aria-labelledby="mentor-list" class="mt-10">
+      <h2 id="mentor-list" class="text-3xl font-extrabold">Current mentors ({mentors.length})</h2>
+      {
+        mentors.length === 0 ? (
+          <p class="mt-4 text-muted">No mentors yet.</p>
+        ) : (
+          <ul class="mt-4 space-y-3">
+            {mentors.map((m) => (
+              <li class:list={[card, 'flex flex-wrap items-center justify-between gap-3']}>
+                <span class="min-w-0 break-words font-bold">{m.email}</span>
+                <form method="post">
+                  <input type="hidden" name="action" value="remove" />
+                  <input type="hidden" name="email" value={m.email} />
+                  <button type="submit" class:list={[buttonSecondary, focus, 'cursor-pointer px-4 py-2 text-base']}>
+                    Remove<span class="sr-only"> {m.email}</span>
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </section>
+
+    <p class="mt-10"><a href="/account" class:list={['font-bold', focus]}>Your account</a></p>
+  </div>
+</BaseLayout>

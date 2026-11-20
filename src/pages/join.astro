@@ -1,0 +1,212 @@
+---
+import { env } from 'cloudflare:workers';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import {
+  completeProfile,
+  getProfile,
+  recentWrongCodes,
+  recordWrongCode,
+  syncRole,
+} from '../db/accounts';
+import { getDb } from '../db/client';
+import { clubCodeMatches, isLockedOut, minutesUntilRetry, triesLeft } from '../lib/clubCode';
+import { denied, requireUser } from '../lib/guards';
+import { crossSiteResponse, isSameOrigin } from '../lib/origin';
+import { GRADES, isProfileComplete, MAX_NAME_LENGTH, parseJoinForm, type JoinErrors } from '../lib/profile';
+import { parseEmailList } from '../lib/roles';
+import { buttonPrimary, buttonSecondary, card, eyebrow, fadeUp, focus, input } from '../lib/styles';
+
+export const prerender = false;
+
+const access = requireUser(Astro.locals);
+if (!access.ok) return denied(Astro, access);
+
+const db = getDb();
+let profile = access.profile;
+// The role is set at sign-in; if that step failed, set it now.
+if (!profile) {
+  await syncRole(db, access.user.id, parseEmailList(env.ADMIN_EMAILS));
+  profile = await getProfile(db, access.user.id);
+}
+if (profile && isProfileComplete(profile)) return Astro.redirect('/account', 303);
+
+const role = profile?.role ?? 'mentee';
+// Mentors and admins skip the club code; so does a mentee who already entered it.
+const needsCode = role === 'mentee' && !profile?.clubCodeAt;
+
+let name = profile?.name ?? access.user.name;
+let grade: number | null = profile?.grade ?? null;
+let errors: JoinErrors = {};
+let lockedMinutes = 0;
+
+const now = new Date();
+if (needsCode) {
+  const tries = await recentWrongCodes(db, access.user.id, now);
+  if (isLockedOut(tries, now)) lockedMinutes = minutesUntilRetry(tries, now);
+}
+
+if (Astro.request.method === 'POST' && lockedMinutes === 0) {
+  if (!isSameOrigin(Astro.request)) return crossSiteResponse();
+  const form = await Astro.request.formData();
+  const parsed = parseJoinForm(form, needsCode);
+  const rawGrade = Number(form.get('grade'));
+  grade = Number.isInteger(rawGrade) ? rawGrade : null;
+  if (!parsed.ok) {
+    errors = parsed.errors;
+    name = parsed.name;
+  } else {
+    name = parsed.value.name;
+    if (needsCode && !clubCodeMatches(parsed.value.code, env.CLUB_CODE)) {
+      await recordWrongCode(db, access.user.id, now);
+      const tries = await recentWrongCodes(db, access.user.id, now);
+      if (isLockedOut(tries, now)) {
+        lockedMinutes = minutesUntilRetry(tries, now);
+      } else {
+        const left = triesLeft(tries, now);
+        errors.code = `That club code isn't right. You have ${left} ${left === 1 ? 'try' : 'tries'} left this hour.`;
+      }
+    } else {
+      await completeProfile(db, access.user.id, {
+        name: parsed.value.name,
+        grade: parsed.value.grade,
+        codeOk: needsCode,
+      });
+      return Astro.redirect('/account', 303);
+    }
+  }
+}
+
+const errorList = Object.values(errors);
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+---
+
+<BaseLayout title="Finish signing up" description="Finish joining the GHIC Stock Pitch Guide." noindex>
+  <div class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}>Account</p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">Finish signing up</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      {
+        needsCode
+          ? 'Tell us your name and grade, and enter the club code a GHIC officer gave you.'
+          : 'Tell us your name and grade. As a mentor or club officer, you don\'t need the club code.'
+      }
+    </p>
+
+    <p class="mt-6 rounded-md bg-tint p-4">
+      <strong>Use a personal Google account. School accounts are blocked by the district.</strong>
+      {' '}You're signed in as <span class="break-words">{access.user.email}</span>.
+    </p>
+
+    {
+      lockedMinutes > 0 && (
+        <p role="alert" class="mt-6 rounded-md border-2 border-danger p-4 font-bold text-danger">
+          Too many wrong club codes. Try again in {lockedMinutes}{' '}
+          {lockedMinutes === 1 ? 'minute' : 'minutes'}, or ask a club officer for the code.
+        </p>
+      )
+    }
+
+    {
+      errorList.length > 0 && (
+        <div role="alert" class="mt-6 rounded-md border-2 border-danger p-4 text-danger">
+          <p class="font-bold">Please fix this:</p>
+          <ul class="mt-2 list-disc pl-5">
+            {errorList.map((e) => (
+              <li>{e}</li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+
+    <form method="post" class:list={['mt-8 space-y-6', card]} novalidate>
+      <div>
+        <label for="join-name" class="block text-lg font-bold">Your name</label>
+        <p id="join-name-hint" class="text-sm text-muted">From Google. Change it if you go by another name.</p>
+        <input
+          id="join-name"
+          name="name"
+          type="text"
+          autocomplete="name"
+          required
+          maxlength={MAX_NAME_LENGTH}
+          value={name}
+          aria-invalid={errors.name ? 'true' : undefined}
+          aria-describedby={errors.name ? 'join-name-hint join-name-error' : 'join-name-hint'}
+          class:list={['mt-1', input]}
+        />
+        {errors.name && <p id="join-name-error" class="mt-1 font-bold">{errors.name}</p>}
+      </div>
+
+      <div>
+        <label for="join-grade" class="block text-lg font-bold">Grade</label>
+        <select
+          id="join-grade"
+          name="grade"
+          required
+          aria-invalid={errors.grade ? 'true' : undefined}
+          aria-describedby={errors.grade ? 'join-grade-error' : undefined}
+          class:list={['mt-1', input]}
+        >
+          <option value="" selected={grade === null}>Choose your grade</option>
+          {GRADES.map((g) => (
+            <option value={String(g)} selected={grade === g}>
+              Grade {g}
+            </option>
+          ))}
+        </select>
+        {errors.grade && <p id="join-grade-error" class="mt-1 font-bold">{errors.grade}</p>}
+      </div>
+
+      {
+        needsCode && (
+          <div>
+            <label for="join-code" class="block text-lg font-bold">
+              Club code
+            </label>
+            <p id="join-code-hint" class="text-sm text-muted">
+              Capital letters don't matter.
+            </p>
+            <input
+              id="join-code"
+              name="code"
+              type="text"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              required
+              disabled={lockedMinutes > 0}
+              aria-invalid={errors.code ? 'true' : undefined}
+              aria-describedby={errors.code ? 'join-code-hint join-code-error' : 'join-code-hint'}
+              class:list={['mt-1', input]}
+            />
+            {errors.code && (
+              <p id="join-code-error" class="mt-1 font-bold">
+                {errors.code}
+              </p>
+            )}
+          </div>
+        )
+      }
+
+      <button
+        type="submit"
+        disabled={lockedMinutes > 0}
+        class:list={[buttonPrimary, focus, 'cursor-pointer disabled:cursor-not-allowed disabled:opacity-60']}
+      >
+        Finish signing up
+      </button>
+    </form>
+
+    <section aria-labelledby="not-now" class="mt-10">
+      <h2 id="not-now" class="text-2xl font-extrabold">Not a GHIC member, or wrong account?</h2>
+      <div class="mt-4 flex flex-wrap items-center gap-4">
+        <form method="post" action="/account/sign-out">
+          <button type="submit" class:list={[buttonSecondary, focus, 'cursor-pointer']}>Sign out</button>
+        </form>
+        <a href="/account/delete" class:list={['font-bold', focus]}>Delete my account</a>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

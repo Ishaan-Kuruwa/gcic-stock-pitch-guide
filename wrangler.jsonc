@@ -12,7 +12,8 @@
     "not_found_handling": "404-page"
   },
   // Not secret. Local dev overrides it in .dev.vars (see docs/accounts-setup.md).
-  // Secrets (BETTER_AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET) are set
+  // Secrets (BETTER_AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+  // ADMIN_EMAILS, CLUB_CODE) are set
   // with `npx wrangler secret put`, never written here.
   "vars": {
     "BETTER_AUTH_URL": "https://gcic-stock-pitch-guide.ishaan-wizard.workers.dev"
