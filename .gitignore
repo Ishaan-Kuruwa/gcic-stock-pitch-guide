@@ -28,3 +28,8 @@ pnpm-debug.log*
 
 # Local design references (not part of the site)
 design-reference/
+
+# local secrets for wrangler / astro dev (see .dev.vars.example)
+.dev.vars
+.dev.vars.*
+!.dev.vars.example

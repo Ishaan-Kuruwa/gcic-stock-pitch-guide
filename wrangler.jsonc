@@ -2,11 +2,32 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "gcic-stock-pitch-guide",
   "compatibility_date": "2026-11-16",
-  // Static site only: Cloudflare serves the files Astro builds into ./dist.
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // Astro's Cloudflare adapter. Prerendered pages are served straight from
+  // static assets; only on-demand routes (sign-in, /account) run the Worker.
+  "main": "@astrojs/cloudflare/entrypoints/server",
   "assets": {
+    "binding": "ASSETS",
     "directory": "./dist",
     "not_found_handling": "404-page"
   },
+  // Not secret. Local dev overrides it in .dev.vars (see docs/accounts-setup.md).
+  // Secrets (BETTER_AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET) are set
+  // with `npx wrangler secret put`, never written here.
+  "vars": {
+    "BETTER_AUTH_URL": "https://gcic-stock-pitch-guide.ishaan-wizard.workers.dev"
+  },
+  // Accounts database. Local dev uses a local copy in .wrangler/state;
+  // deploys use the remote database named by database_id.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ghic-guide",
+      // TODO: replace with the id printed by `npx wrangler d1 create ghic-guide`.
+      "database_id": "REPLACE_WITH_DATABASE_ID",
+      "migrations_dir": "drizzle/migrations"
+    }
+  ],
   // Required by `npx wrangler preview` (the PR preview deploy command). Can stay empty.
   "previews": {}
 }
