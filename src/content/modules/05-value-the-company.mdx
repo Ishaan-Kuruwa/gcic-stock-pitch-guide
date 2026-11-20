@@ -15,6 +15,7 @@ reviewedBy: "Ishaan Kuruwa"
 
 import Part from '../../components/ModulePart.astro';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
+import TemplateLink from '../../components/TemplateLink.astro';
 import PECalculator from '../../components/PECalculator.tsx';
 import { formatDue } from '../../lib/modules';
 import { officialLinks } from '../../data/competition';
@@ -151,7 +152,7 @@ export const sellAt = wholePercent.format(recommendationRule.sellAtDownside);
   1. **Look up your company's current share price** and write down the date.
   2. **Calculate its current P/E** using the latest diluted EPS from module 4.
   3. **Forecast next year's EPS.** Write your growth assumption and two reasons for it.
-  4. **Pick three or four comparable companies**, look up each one's P/E, and write down the date and source.
+  4. **Pick three or four comparable companies**, look up each one's P/E, and write down the date and source. <TemplateLink id="comps" /> and click **Make a copy**, then fill in the yellow cells on the "Your company" tab. Compare against the "Example: Costco" tab to see a finished one.
   5. **Choose your target P/E**, and write two or three sentences explaining why.
   6. **Run the [P/E calculator](/tools/pe-calculator)** with your numbers. Copy the formula lines into your report.
   7. **Check the sensitivity table.** Note which inputs would flip your recommendation.

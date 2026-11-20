@@ -1,0 +1,17 @@
+---
+/**
+ * A link to one of GHIC's Google templates (from src/data/club.ts).
+ * Opens in a new tab, in Google's "make a copy" mode.
+ */
+import { templates, type TemplateId } from '../data/club';
+
+interface Props {
+  id: TemplateId;
+}
+const { id } = Astro.props;
+const { label, url } = templates[id];
+---
+
+<a href={url} target="_blank" rel="noopener noreferrer" data-template-link={id}
+  >Open the {label} (makes a copy)<span class="sr-only"> (opens in a new tab)</span></a
+>
