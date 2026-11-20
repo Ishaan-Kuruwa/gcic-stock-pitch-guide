@@ -16,6 +16,7 @@ reviewedBy: "Ishaan Kuruwa"
 
 import Part from '../../components/ModulePart.astro';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
+import TemplateLink from '../../components/TemplateLink.astro';
 import { formatDue } from '../../lib/modules';
 import { categoryPoints } from '../../lib/facts';
 import {
@@ -118,7 +119,7 @@ export const slidesFileName = fileNames.find((f) => f.item === 'slides')?.patter
 </Part>
 
 <Part id="do">
-  1. **Start a new Google Slides deck with a simple, plain theme.**
+  1. **<TemplateLink id="slides" />** and click **Make a copy**. Replace every bracketed prompt with your own content.
   2. **Plan your slides in a list first**, one point per slide, following your report's order.
   3. **Build the title slide** with every required field.
   4. **Write a point-stating title for each slide**, then three to five short bullets.
