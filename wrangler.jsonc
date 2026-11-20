@@ -23,8 +23,7 @@
     {
       "binding": "DB",
       "database_name": "ghic-guide",
-      // TODO: replace with the id printed by `npx wrangler d1 create ghic-guide`.
-      "database_id": "REPLACE_WITH_DATABASE_ID",
+      "database_id": "a779568f-9b1f-4f21-b363-d3029f56fe4c",
       "migrations_dir": "drizzle/migrations"
     }
   ],
