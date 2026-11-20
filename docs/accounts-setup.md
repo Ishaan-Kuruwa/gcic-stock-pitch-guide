@@ -235,7 +235,7 @@ After the PR is merged and deployed, repeat step 5 at
 
 | Account | Where | Date | Result | Exact message seen (if blocked) |
 | --- | --- | --- | --- | --- |
-| School | local | | | |
-| Personal | local | | | |
+| School | local | 2026-11-19 | Blocked by school district | Error 400: admin_policy_enforced |
+| Personal | local | 2026-11-19 | Signed in | |
 | School | live | | | |
 | Personal | live | | | |

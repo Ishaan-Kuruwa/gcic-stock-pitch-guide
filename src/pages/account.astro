@@ -62,11 +62,18 @@ Astro.response.headers.set('Cache-Control', 'private, no-store');
           </form>
         </section>
       ) : (
-        <form method="post" action="/account/sign-in" class="mt-8">
-          <button type="submit" class:list={[buttonPrimary, focus, 'cursor-pointer']}>
-            Sign in with Google
-          </button>
-        </form>
+        <>
+          <p class="mt-8 rounded-md bg-tint p-4">
+            <strong>Use a personal Google account.</strong> Many school districts block school
+            accounts from signing in to outside sites, so a school account may show "Access
+            blocked" or "Error 400".
+          </p>
+          <form method="post" action="/account/sign-in" class="mt-6">
+            <button type="submit" class:list={[buttonPrimary, focus, 'cursor-pointer']}>
+              Sign in with Google
+            </button>
+          </form>
+        </>
       )
     }
   </div>
