@@ -4,6 +4,7 @@ import '../styles/print.css';
 import { isCurrentPath } from '../lib/nav';
 import { officialLinks } from '../data/competition';
 import { focus } from '../lib/styles';
+import { firstName, isProfileComplete } from '../lib/profile';
 
 interface Props {
   title: string;
@@ -29,6 +30,23 @@ const navLinks = [
 ];
 
 const currentPath = Astro.url.pathname;
+
+// Account link. On-demand pages know who is signed in. Prerendered pages are
+// built for everyone, so they say "Sign in" and the script at the bottom
+// swaps in the first name from the ghic_nav cookie (see src/lib/navHint.ts).
+// Without JavaScript the link still goes to /account, which shows the account.
+const { user, profile } = Astro.locals;
+const accountLink =
+  user && profile && profile.name && isProfileComplete(profile)
+    ? {
+        href: profile.role === 'admin' ? '/admin/mentors' : '/account',
+        label: firstName(profile.name),
+        hint: false,
+      }
+    : user
+      ? { href: '/join', label: 'Finish sign-up', hint: false }
+      : { href: '/account', label: 'Sign in', hint: true };
+const accountCurrent = ['/account', '/join', '/admin'].some((href) => isCurrentPath(currentPath, href));
 const guidelines = officialLinks.find((link) => link.id === 'guidelines')!;
 ---
 
@@ -95,6 +113,22 @@ const guidelines = officialLinks.find((link) => link.id === 'guidelines')!;
                 );
               })
             }
+            <li>
+              <a
+                href={accountLink.href}
+                data-nav-account={accountLink.hint ? '' : undefined}
+                aria-current={accountCurrent && isCurrentPath(currentPath, accountLink.href) ? 'page' : undefined}
+                class:list={[
+                  'relative inline-block max-w-[12rem] truncate rounded-md px-3 py-2 font-bold no-underline transition-colors duration-200 hover:bg-tint hover:text-text',
+                  accountCurrent
+                    ? 'text-text after:absolute after:inset-x-3 after:bottom-0.5 after:h-1 after:rounded-full after:bg-highlight'
+                    : 'text-accent',
+                  focus,
+                ]}
+              >
+                {accountLink.label}
+              </a>
+            </li>
           </ul>
         </nav>
       </div>
@@ -113,7 +147,20 @@ const guidelines = officialLinks.find((link) => link.id === 'guidelines')!;
           An independent GHIC study guide, not an official YIS resource.{' '}
           <a href={guidelines.url} class="font-bold">Official YIS guidelines and rubric</a>
         </p>
+        <p class="mt-1">
+          <a href="/privacy" class="font-bold">Privacy</a>
+        </p>
       </div>
     </footer>
+    <script>
+      // Show the signed-in member's first name on prerendered pages.
+      import { readNavHint } from '../lib/navHint';
+      const link = document.querySelector<HTMLAnchorElement>('a[data-nav-account]');
+      const hint = link ? readNavHint(document.cookie) : null;
+      if (link && hint) {
+        link.textContent = hint.name;
+        link.href = hint.href;
+      }
+    </script>
   </body>
 </html>

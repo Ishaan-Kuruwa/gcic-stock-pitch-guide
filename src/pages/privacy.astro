@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Todo from '../components/Todo.astro';
+import { eyebrow, fadeUp } from '../lib/styles';
+---
+
+<BaseLayout
+  title="Privacy"
+  description="What the GHIC Stock Pitch Guide stores about members, who can see it, and how to delete it."
+>
+  <div class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}>Privacy</p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">Your privacy</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      For students and parents: what this site keeps when a GHIC member signs in, who can see it,
+      and how to delete it. Reading the guide and using the tools needs no account, and those pages
+      save your progress only in your own browser.
+    </p>
+
+    <div class="mt-10 space-y-10 text-lg leading-relaxed">
+      <section aria-labelledby="what-we-store">
+        <h2 id="what-we-store" class="text-3xl font-extrabold">What we store</h2>
+        <ul class="mt-3 list-disc space-y-1 pl-6">
+          <li>Your name.</li>
+          <li>The Google email you sign in with.</li>
+          <li>Your grade.</li>
+          <li>
+            Later in the season: your team, your progress, and links to your own files (we store the
+            link, not what's in the file).
+          </li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="never-store">
+        <h2 id="never-store" class="text-3xl font-extrabold">What we never store</h2>
+        <ul class="mt-3 list-disc space-y-1 pl-6">
+          <li>Profile pictures.</li>
+          <li>Google tokens (we can't open your Google account, Drive or email).</li>
+          <li>Birthdates.</li>
+          <li>Phone numbers.</li>
+          <li>The text of your report or slides.</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="who-can-see">
+        <h2 id="who-can-see" class="text-3xl font-extrabold">Who can see it</h2>
+        <ul class="mt-3 list-disc space-y-1 pl-6">
+          <li>You.</li>
+          <li>Your teammates.</li>
+          <li>Your mentor.</li>
+          <li>The club officers who run this site.</li>
+        </ul>
+        <p class="mt-3">Nobody else. The site has no ads and no tracking.</p>
+      </section>
+
+      <section aria-labelledby="delete">
+        <h2 id="delete" class="text-3xl font-extrabold">How to delete your account</h2>
+        <p class="mt-3">
+          Sign in, go to <a href="/account">your account</a>, and choose <strong>Delete my account</strong>.
+          After you confirm, your name, email, grade and sign-in records are deleted right away and
+          you are signed out.
+        </p>
+      </section>
+
+      <section aria-labelledby="season-end">
+        <h2 id="season-end" class="text-3xl font-extrabold">When season data is deleted</h2>
+        <p class="mt-3">At the end of each competition season, we delete members' season data.</p>
+        <Todo title="TODO: deletion date">
+          Add the date season data is deleted.
+        </Todo>
+      </section>
+
+      <section aria-labelledby="contact">
+        <h2 id="contact" class="text-3xl font-extrabold">Questions</h2>
+        <Todo title="TODO: contact email">
+          Add the email address students and parents can write to with privacy questions.
+        </Todo>
+      </section>
+    </div>
+  </div>
+</BaseLayout>

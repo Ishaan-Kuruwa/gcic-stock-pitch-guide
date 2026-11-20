@@ -1,8 +1,9 @@
-# Accounts setup (Phase A: Google sign-in test)
+# Accounts setup
 
-This sets up everything the `/account` page needs: a Google OAuth client, the
-D1 database, and three secrets. Do the steps in order. Each one says what to
-click and what to paste.
+**Phase A** (steps 1–6) sets up Google sign-in: a Google OAuth client, the D1
+database, and three secrets. **Phase B** (steps 7–10) adds roles, the club
+code, the mentor list and the privacy page. Do the steps in order. Each one
+says what to click and what to paste.
 
 Values used below:
 
@@ -76,9 +77,8 @@ school account can lose access when you graduate).
    ```
 4. Click **Save**.
 
-> **Phase B note:** we switch the publishing status to **In production** in
-> Phase B, and only after the `/privacy` page exists. Until then, only the test
-> users listed here can sign in (up to 100).
+> Stay in Testing until every item in "Before students sign up" (step 10) is
+> done. Until then, only the test users listed here can sign in (up to 100).
 
 ### 1f. Create the web client
 
@@ -228,6 +228,104 @@ the error.
 
 After the PR is merged and deployed, repeat step 5 at
 <https://gcic-stock-pitch-guide.ishaan-wizard.workers.dev/account>.
+
+---
+
+# Phase B: roles, club code, mentors
+
+Who gets which role:
+
+| Role | Who | Club code? |
+| --- | --- | --- |
+| Admin | Emails in `ADMIN_EMAILS` (club officers running the site) | No |
+| Mentor | Emails on the list at `/admin/mentors` | No |
+| Member (mentee) | Everyone else who signs in | Yes |
+
+The role is checked again on every sign-in, so adding or removing an email
+takes effect the next time that person signs in. Changes made on
+`/admin/mentors` take effect right away.
+
+After a first sign-in, everyone goes to `/join` to enter their name and grade
+(members also enter the club code). They can't use any account page until
+that's done. Five wrong codes in an hour locks that account out of `/join`
+for the rest of the hour.
+
+## 7. Apply the new database tables
+
+Before merging the Phase B PR, add the new tables to both databases:
+
+```sh
+npm run db:migrate:local
+npm run db:migrate:remote
+```
+
+You should see `0001_club_profiles.sql ✅`.
+
+## 8. Set ADMIN_EMAILS and CLUB_CODE
+
+Both are **secrets**, not `vars` in `wrangler.jsonc`: the repo is public, and
+admin emails and the club code shouldn't be in it.
+
+1. Admin emails, comma-separated (spaces and capital letters don't matter):
+   ```sh
+   npx wrangler secret put ADMIN_EMAILS
+   ```
+   Paste, for example, `officer.one@gmail.com,officer.two@gmail.com`. Use the
+   Google account each officer will sign in with (a personal account, since
+   school accounts are blocked).
+2. The club code:
+   ```sh
+   npx wrangler secret put CLUB_CODE
+   ```
+   Pick something short that's easy to say out loud at a meeting. Capital
+   letters don't matter when members type it.
+3. Locally, set both in `.dev.vars` (see `.dev.vars.example`), then restart
+   `npm run dev`:
+   ```
+   ADMIN_EMAILS=<your personal Google email>
+   CLUB_CODE=<any test code>
+   ```
+
+**To change the club code** (for example, at the start of a new season), run
+`npx wrangler secret put CLUB_CODE` again. Members who already joined aren't
+affected; only new sign-ups need the new code.
+
+**To add or remove an admin**, run `npx wrangler secret put ADMIN_EMAILS` again
+with the full new list. It applies at that person's next sign-in.
+
+## 9. Add mentors
+
+1. Sign in with an admin account. The header link (your first name) goes to
+   **Mentors** (`/admin/mentors`).
+2. Under **Add a mentor**, type the mentor's Google email and click **Add mentor**.
+3. Tell the mentor to sign in. They pick their grade at `/join` and skip the
+   club code.
+
+To remove a mentor, click **Remove** next to their email. If they already have
+an account, they become a member right away and must enter the club code
+before they can continue.
+
+## 10. Before students sign up
+
+Do these in order. Don't share the site with members until all are done.
+
+1. **Advisor approval of `/privacy`.** Fill in the two TODO boxes on the
+   privacy page (the date season data is deleted and the contact email) in
+   `src/pages/privacy.astro`, deploy, and have the club advisor read and approve
+   <https://gcic-stock-pitch-guide.ishaan-wizard.workers.dev/privacy>.
+2. **Add the privacy URL in Google.** In Google Cloud Console → **Google Auth
+   Platform** → **Branding**, paste this into **Privacy policy link** and click
+   **Save**:
+   ```
+   https://gcic-stock-pitch-guide.ishaan-wizard.workers.dev/privacy
+   ```
+3. **Move the Google app to In production.** **Google Auth Platform** →
+   **Audience** → **Publishing status** → **Publish app** → **Confirm**. The
+   status should say **In production**. We only ask for `openid`, `email`
+   and `profile`, which usually means no verification review; if Google asks
+   for one anyway, follow its steps (the app keeps working for test users meanwhile). After
+   this, anyone with a personal Google account can sign in, and the club code
+   keeps non-members out of the account pages.
 
 ---
 

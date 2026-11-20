@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { buildAuthOptions, GOOGLE_SCOPES, withoutImage, withoutTokens } from './authOptions';
 
 const settings = {
@@ -82,5 +82,29 @@ describe('withoutImage / withoutTokens', () => {
 
   it('withoutTokens leaves out fields that were never there', () => {
     expect(withoutTokens({ scope: 's' })).toEqual({ scope: 's' });
+  });
+});
+
+describe('onSignIn', () => {
+  it('runs with the user id each time a session is created', async () => {
+    const seen: string[] = [];
+    const withHook = buildAuthOptions(settings, undefined, async (id) => seen.push(id));
+    await withHook.databaseHooks.session.create.after({ userId: 'u1' });
+    await withHook.databaseHooks.session.create.after({ userId: 'u1' });
+    expect(seen).toEqual(['u1', 'u1']);
+  });
+
+  it('never blocks sign-in when the role check fails', async () => {
+    const failing = buildAuthOptions(settings, undefined, async () => {
+      throw new Error('db down');
+    });
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await expect(failing.databaseHooks.session.create.after({ userId: 'u1' })).resolves.toBeUndefined();
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('does nothing without a hook', async () => {
+    await expect(hooks.session.create.after({ userId: 'u1' })).resolves.toBeUndefined();
   });
 });

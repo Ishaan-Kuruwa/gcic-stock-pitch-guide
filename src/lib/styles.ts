@@ -38,3 +38,6 @@ export function fadeDelay(index: number, stepMs = 50, maxMs = 600): string {
   const ms = Math.min(Math.max(0, Math.floor(index)) * stepMs, maxMs);
   return `animation-delay: ${ms}ms`;
 }
+
+/** Text input or select on server-rendered forms (same look as the tool inputs). */
+export const input = `w-full rounded-md border-2 border-muted bg-surface p-3 text-lg text-text aria-[invalid=true]:border-l-8 ${focus}`;

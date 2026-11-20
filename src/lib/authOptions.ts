@@ -38,7 +38,18 @@ export function withoutTokens<T extends Record<string, unknown>>(account: T): T 
   return copy as T;
 }
 
-export function buildAuthOptions(settings: AuthSettings, database: BetterAuthOptions['database']) {
+/**
+ * Runs after each sign-in (Better Auth creates a new session for every one).
+ * Used to re-check the user's role. Errors are logged, not thrown, so a
+ * database hiccup never blocks sign-in; /join re-checks a missing profile.
+ */
+export type OnSignIn = (userId: string) => Promise<unknown>;
+
+export function buildAuthOptions(
+  settings: AuthSettings,
+  database: BetterAuthOptions['database'],
+  onSignIn?: OnSignIn,
+) {
   const origin = new URL(settings.baseURL).origin;
   return {
     appName: 'GHIC Stock Pitch Guide',
@@ -67,6 +78,18 @@ export function buildAuthOptions(settings: AuthSettings, database: BetterAuthOpt
       account: {
         create: { before: async (account) => ({ data: withoutTokens(account) }) },
         update: { before: async (account) => ({ data: withoutTokens(account) }) },
+      },
+      session: {
+        create: {
+          after: async (session: { userId: string }) => {
+            if (!onSignIn) return;
+            try {
+              await onSignIn(session.userId);
+            } catch (error) {
+              console.error('Could not update the role after sign-in', error);
+            }
+          },
+        },
       },
     },
   } satisfies BetterAuthOptions;

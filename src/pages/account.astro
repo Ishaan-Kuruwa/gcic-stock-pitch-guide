@@ -1,11 +1,19 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { denied, requireProfile } from '../lib/guards';
+import { roleLabels } from '../lib/roles';
 import { buttonPrimary, buttonSecondary, card, eyebrow, fadeUp, focus } from '../lib/styles';
 
 // Rendered per visit (shows who is signed in); every other page stays static.
 export const prerender = false;
 
+// Signed out: this page is the sign-in page. Signed in: the profile must be
+// finished first, so an unfinished one goes to /join.
 const { user } = Astro.locals;
+const access = user ? requireProfile(Astro.locals) : null;
+if (access && !access.ok) return denied(Astro, access);
+const profile = access?.ok ? access.profile : null;
+const deleted = Astro.url.searchParams.get('deleted') === '1';
 const error = Astro.url.searchParams.get('error');
 const errorMessage =
   error === null
@@ -26,10 +34,19 @@ Astro.response.headers.set('Cache-Control', 'private, no-store');
     <p class="mt-5 text-lg leading-relaxed text-muted">
       {
         user
-          ? 'You are signed in. We keep only your name and email from Google.'
-          : 'Sign in with your Google account. We keep only your name and email.'
-      }
+          ? 'You are signed in. We keep only your name, the email you sign in with, and your grade.'
+          : 'Sign in with your Google account. We keep only your name, email and grade.'
+      }{' '}
+      <a href="/privacy" class:list={['font-bold', focus]}>Privacy</a>
     </p>
+
+    {
+      deleted && !user && (
+        <p role="status" class="mt-6 rounded-md bg-tint p-4 font-bold">
+          Your account is deleted and you are signed out.
+        </p>
+      )
+    }
 
     {
       errorMessage && (
@@ -40,7 +57,7 @@ Astro.response.headers.set('Cache-Control', 'private, no-store');
     }
 
     {
-      user ? (
+      user && profile ? (
         <section aria-labelledby="signed-in" class:list={['mt-8', card]}>
           <h2 id="signed-in" class="text-3xl font-extrabold">
             Signed in
@@ -48,25 +65,51 @@ Astro.response.headers.set('Cache-Control', 'private, no-store');
           <dl class="mt-4 space-y-3">
             <div>
               <dt class="text-sm font-bold text-muted">Name</dt>
-              <dd class="break-words text-lg">{user.name}</dd>
+              <dd class="break-words text-lg">{profile.name}</dd>
             </div>
             <div>
               <dt class="text-sm font-bold text-muted">Email</dt>
               <dd class="break-words text-lg">{user.email}</dd>
             </div>
+            <div>
+              <dt class="text-sm font-bold text-muted">Grade</dt>
+              <dd class="text-lg">{profile.grade}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-bold text-muted">Role</dt>
+              <dd class="text-lg">{roleLabels[profile.role]}</dd>
+            </div>
           </dl>
-          <form method="post" action="/account/sign-out" class="mt-6">
-            <button type="submit" class:list={[buttonSecondary, focus, 'cursor-pointer']}>
-              Sign out
-            </button>
-          </form>
+          <div class="mt-6 flex flex-wrap items-center gap-4">
+            <form method="post" action="/account/sign-out">
+              <button type="submit" class:list={[buttonSecondary, focus, 'cursor-pointer']}>
+                Sign out
+              </button>
+            </form>
+            {profile.role === 'admin' && (
+              <a href="/admin/mentors" class:list={['font-bold', focus]}>
+                Manage mentors
+              </a>
+            )}
+          </div>
+        </section>
+        <section aria-labelledby="delete-heading" class="mt-10">
+          <h2 id="delete-heading" class="text-2xl font-extrabold">
+            Delete my account
+          </h2>
+          <p class="mt-2 text-muted">
+            Removes your name, grade and sign-in records from this site. You'll be asked to confirm.
+          </p>
+          <a href="/account/delete" class:list={['mt-4', buttonSecondary, focus]}>
+            Delete my account
+          </a>
         </section>
       ) : (
         <>
           <p class="mt-8 rounded-md bg-tint p-4">
-            <strong>Use a personal Google account.</strong> Many school districts block school
-            accounts from signing in to outside sites, so a school account may show "Access
-            blocked" or "Error 400".
+            <strong>Use a personal Google account. School accounts are blocked by the district.</strong>{' '}
+            A school account shows "Access blocked" or "Error 400". After you sign in for the first
+            time, you'll enter your grade and the club code.
           </p>
           <form method="post" action="/account/sign-in" class="mt-6">
             <button type="submit" class:list={[buttonPrimary, focus, 'cursor-pointer']}>

@@ -20,7 +20,10 @@ export default defineConfig({
   session: false,
 
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    // src/db/accounts.test.ts imports wrangler (for a local D1 in tests). The
+    // dev server's dependency scan finds that import and can't bundle wrangler.
+    optimizeDeps: { exclude: ['wrangler'] },
   },
 
   markdown: {

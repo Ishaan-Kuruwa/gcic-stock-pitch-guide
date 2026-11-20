@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { buttonPrimary, eyebrow, fadeUp, focus } from '../lib/styles';
+
+// Shown (via rewrite) when a signed-in user opens a page their role can't use.
+export const prerender = false;
+
+Astro.response.status = 403;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+---
+
+<BaseLayout title="No access" description="You don't have access to this page." noindex>
+  <div class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}>Error 403</p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">You don't have access to this page</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      This page is only for club officers or mentors. If you think you should have access, ask a
+      GHIC club officer.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-4">
+      <a href="/account" class:list={[buttonPrimary, focus]}>Your account</a>
+      <a href="/" class:list={['self-center font-bold', focus]}>Home</a>
+    </div>
+  </div>
+</BaseLayout>

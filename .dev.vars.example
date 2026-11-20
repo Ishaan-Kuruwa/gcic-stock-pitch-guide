@@ -4,3 +4,7 @@ BETTER_AUTH_URL=http://localhost:4321
 BETTER_AUTH_SECRET=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
+# Comma-separated emails that get the admin role (club officers running the site).
+ADMIN_EMAILS=
+# The club code members enter at /join. Case does not matter.
+CLUB_CODE=
