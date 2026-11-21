@@ -158,9 +158,9 @@ describe('team page access', () => {
     const memberIds = (await getTeam(db, teamId))!.members.map((m) => m.userId);
     const profileOf = async (id: string) => (await db.query.profiles.findFirst({ where: (p, { eq }) => eq(p.userId, id) }))!;
 
-    expect(teamViewAccess(await profileOf('u1'), memberIds)).toBe('ok');
-    expect(teamViewAccess(await profileOf('u2'), memberIds)).toBe('notfound');
-    expect(teamViewAccess(await profileOf('a'), memberIds)).toBe('ok');
+    expect(teamViewAccess(await profileOf('u1'), memberIds, null)).toBe('ok');
+    expect(teamViewAccess(await profileOf('u2'), memberIds, null)).toBe('notfound');
+    expect(teamViewAccess(await profileOf('a'), memberIds, null)).toBe('ok');
     expect(await getTeam(db, crypto.randomUUID())).toBeNull();
   });
 });

@@ -8,6 +8,8 @@ import {
   requireRole,
   requireUser,
   teamViewAccess,
+  teamCapabilities,
+  allowedTeamActions,
   type GuardLocals,
 } from './guards';
 
@@ -100,12 +102,68 @@ describe('requireMentee', () => {
 
 describe('teamViewAccess', () => {
   const members = ['u1', 'u2'];
-  it('member → ok', () => expect(teamViewAccess(profile(), members)).toBe('ok'));
+  it('member → ok', () => expect(teamViewAccess(profile(), members, null)).toBe('ok'));
   it('non-member mentee → not found (404, not 403)', () => {
-    expect(teamViewAccess(profile({ userId: 'u9' }), members)).toBe('notfound');
+    expect(teamViewAccess(profile({ userId: 'u9' }), members, null)).toBe('notfound');
   });
-  it('non-member mentor → not found until mentors get access', () => {
-    expect(teamViewAccess(profile({ userId: 'u9', role: 'mentor' }), members)).toBe('notfound');
+  it('assigned mentor → ok', () => {
+    expect(teamViewAccess(profile({ userId: 'm1', role: 'mentor' }), members, 'm1')).toBe('ok');
   });
-  it('admin → ok', () => expect(teamViewAccess(profile({ userId: 'u9', role: 'admin' }), members)).toBe('ok'));
+  it("another team's mentor → not found", () => {
+    expect(teamViewAccess(profile({ userId: 'm2', role: 'mentor' }), members, 'm1')).toBe('notfound');
+  });
+  it('mentor of a team with no mentor → not found', () => {
+    expect(teamViewAccess(profile({ userId: 'm1', role: 'mentor' }), members, null)).toBe('notfound');
+  });
+  it('removed mentor (now a mentee) still named on the team → not found', () => {
+    expect(teamViewAccess(profile({ userId: 'm1', role: 'mentee' }), members, 'm1')).toBe('notfound');
+  });
+  it('admin → ok', () => expect(teamViewAccess(profile({ userId: 'u9', role: 'admin' }), members, null)).toBe('ok'));
+});
+
+describe('teamCapabilities and allowedTeamActions', () => {
+  const members = ['u1', 'u2'];
+  const actions = (p: Parameters<typeof profile>[0], mentorId: string | null) =>
+    [...allowedTeamActions(teamCapabilities(profile(p), members, mentorId))].sort();
+
+  it('member: team details, links, join code and milestones', () => {
+    expect(teamCapabilities(profile(), members, 'm1')).toEqual({ member: true, mentor: false, admin: false });
+    expect(actions({}, 'm1')).toEqual(['details', 'links', 'milestones', 'new-code']);
+  });
+
+  it("assigned mentor: milestones (mentor review only) and check-ins, not the team's details or links", () => {
+    expect(actions({ userId: 'm1', role: 'mentor' }, 'm1')).toEqual(['checkin-add', 'checkin-edit', 'milestones']);
+  });
+
+  it('a mentor not assigned to the team: nothing', () => {
+    expect(actions({ userId: 'm2', role: 'mentor' }, 'm1')).toEqual([]);
+  });
+
+  it('admin not assigned: mentorship only (no ticks, no check-ins)', () => {
+    expect(teamCapabilities(profile({ userId: 'a1', role: 'admin' }), members, 'm1')).toEqual({
+      member: false,
+      mentor: false,
+      admin: true,
+    });
+    expect(actions({ userId: 'a1', role: 'admin' }, 'm1')).toEqual(['mentorship']);
+  });
+
+  it('admin assigned as mentor: mentorship plus mentor actions', () => {
+    expect(teamCapabilities(profile({ userId: 'a1', role: 'admin' }), members, 'a1')).toEqual({
+      member: false,
+      mentor: true,
+      admin: true,
+    });
+    expect(actions({ userId: 'a1', role: 'admin' }, 'a1')).toEqual([
+      'checkin-add',
+      'checkin-edit',
+      'mentorship',
+      'milestones',
+    ]);
+  });
+
+  it('only admins can change mentorship', () => {
+    expect(actions({}, null)).not.toContain('mentorship');
+    expect(actions({ userId: 'm1', role: 'mentor' }, 'm1')).not.toContain('mentorship');
+  });
 });

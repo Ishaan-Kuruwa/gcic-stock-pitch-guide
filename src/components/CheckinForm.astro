@@ -1,0 +1,123 @@
+---
+/**
+ * The mentor's check-in form on /team/[id], for logging a new check-in or
+ * editing one of their own. Plain POST, no JavaScript. The mentor writes the
+ * notes; the site only checks them (src/lib/checkins.ts).
+ */
+import {
+  CHECKIN_STATUSES,
+  checkinStatusLabels,
+  MAX_COVERED,
+  MAX_NEXT_STEP,
+  type CheckinErrors,
+  type CheckinRaw,
+} from '../lib/checkins';
+import { buttonPrimary, buttonSecondary, focus, input } from '../lib/styles';
+
+interface Props {
+  /** Prefix for element ids, unique on the page ("new" or the check-in's id). */
+  idPrefix: string;
+  action: 'checkin-add' | 'checkin-edit';
+  checkinId?: string;
+  values: CheckinRaw;
+  errors: CheckinErrors;
+  /** YYYY-MM-DD in the club's time zone: the latest day allowed. */
+  today: string;
+  submitLabel: string;
+  /** Edit forms get a Cancel link back to the list. */
+  cancelHref?: string;
+}
+
+const { idPrefix, action, checkinId, values, errors, today, submitLabel, cancelHref } = Astro.props;
+const errorList = Object.values(errors);
+const id = (name: string) => `checkin-${idPrefix}-${name}`;
+---
+
+{
+  errorList.length > 0 && (
+    <div role="alert" class="mt-4 rounded-md border-2 border-danger p-4 text-danger">
+      <p class="font-bold">Please fix this:</p>
+      <ul class="mt-2 list-disc pl-5">
+        {errorList.map((e) => (
+          <li>{e}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+<form method="post" class="mt-4 space-y-4" novalidate>
+  <input type="hidden" name="action" value={action} />
+  {checkinId && <input type="hidden" name="checkin_id" value={checkinId} />}
+  <div>
+    <label for={id('date')} class="block text-lg font-bold">Day you met</label>
+    <input
+      id={id('date')}
+      name="met_on"
+      type="date"
+      max={today}
+      value={values.metOn}
+      aria-invalid={errors.metOn ? 'true' : undefined}
+      class:list={[
+        'mt-1',
+        input,
+        // Chrome focuses the day, month and year parts inside a date field, where
+        // :focus-visible doesn't match, so the ring is drawn for focus-within too.
+        'focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-focus',
+      ]}
+    />
+  </div>
+  <div>
+    <label for={id('covered')} class="block text-lg font-bold">What you covered</label>
+    <p id={id('covered-hint')} class="text-sm text-muted">Up to {MAX_COVERED} characters.</p>
+    <textarea
+      id={id('covered')}
+      name="covered"
+      rows="5"
+      maxlength={MAX_COVERED}
+      aria-describedby={id('covered-hint')}
+      aria-invalid={errors.covered ? 'true' : undefined}
+      class:list={['mt-1', input]}>{values.covered}</textarea
+    >
+  </div>
+  <div>
+    <label for={id('next')} class="block text-lg font-bold">Next step</label>
+    <p id={id('next-hint')} class="text-sm text-muted">Optional. Up to {MAX_NEXT_STEP} characters.</p>
+    <textarea
+      id={id('next')}
+      name="next_step"
+      rows="3"
+      maxlength={MAX_NEXT_STEP}
+      aria-describedby={id('next-hint')}
+      aria-invalid={errors.nextStep ? 'true' : undefined}
+      class:list={['mt-1', input]}>{values.nextStep}</textarea
+    >
+  </div>
+  <div>
+    <label for={id('status')} class="block text-lg font-bold">How is the team doing?</label>
+    <select
+      id={id('status')}
+      name="status"
+      aria-invalid={errors.status ? 'true' : undefined}
+      class:list={['mt-1', input]}
+    >
+      <option value="" selected={values.status === ''}>Choose one</option>
+      {
+        CHECKIN_STATUSES.map((s) => (
+          <option value={s} selected={values.status === s}>
+            {checkinStatusLabels[s]}
+          </option>
+        ))
+      }
+    </select>
+  </div>
+  <div class="flex flex-wrap items-center gap-4">
+    <button type="submit" class:list={[buttonPrimary, focus, 'cursor-pointer']}>{submitLabel}</button>
+    {
+      cancelHref && (
+        <a href={cancelHref} class:list={[buttonSecondary, focus]}>
+          Cancel
+        </a>
+      )
+    }
+  </div>
+</form>

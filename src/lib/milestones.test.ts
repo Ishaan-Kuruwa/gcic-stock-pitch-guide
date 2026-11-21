@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { milestones } from '../data/club';
-import { daysBetween, milestoneStatus, parseShown, planMilestoneSave, todayIn, visibleMilestones } from './milestones';
+import {
+  canTick,
+  daysBetween,
+  milestoneStatus,
+  nextDueMilestone,
+  parseShown,
+  planMilestoneSave,
+  todayIn,
+  visibleMilestones,
+} from './milestones';
+
+const MEMBER = { member: true, mentor: false };
+const MENTOR = { member: false, mentor: true };
+const NOBODY = { member: false, mentor: false };
 
 const NY = 'America/New_York';
 const keys = (list: { key: string }[]) => list.map((m) => m.key);
@@ -74,7 +87,7 @@ describe('planMilestoneSave', () => {
 
   it('ticks and unticks what the member changed', () => {
     const current = new Set(['company-picked']);
-    const plan = planMilestoneSave(current, allShown(['company-picked']), ['yis-registered'], 'self-guided');
+    const plan = planMilestoneSave(current, allShown(['company-picked']), ['yis-registered'], 'self-guided', MEMBER);
     expect(plan).toEqual({ add: ['yis-registered'], remove: ['company-picked'] });
   });
 
@@ -85,6 +98,7 @@ describe('planMilestoneSave', () => {
       allShown(['company-picked', 'comps']),
       ['company-picked', 'comps'],
       'self-guided',
+      MEMBER,
     );
     expect(plan).toEqual({ add: [], remove: [] });
   });
@@ -92,24 +106,25 @@ describe('planMilestoneSave', () => {
   it("keeps a teammate's tick made after my page loaded", () => {
     // My page showed "financials" not done; my teammate then ticked it.
     const current = new Set(['financials']);
-    const plan = planMilestoneSave(current, allShown([]), ['company-picked'], 'self-guided');
+    const plan = planMilestoneSave(current, allShown([]), ['company-picked'], 'self-guided', MEMBER);
     expect(plan).toEqual({ add: ['company-picked'], remove: [] });
   });
 
   it("keeps a teammate's untick made after my page loaded", () => {
     const current = new Set<string>();
-    const plan = planMilestoneSave(current, allShown(['comps']), ['comps'], 'self-guided');
+    const plan = planMilestoneSave(current, allShown(['comps']), ['comps'], 'self-guided', MEMBER);
     expect(plan).toEqual({ add: [], remove: [] });
   });
 
   it('never lets a member tick or untick the mentor review', () => {
-    const tick = planMilestoneSave(new Set(), allShown([], 'mentored'), ['mentor-review'], 'mentored');
+    const tick = planMilestoneSave(new Set(), allShown([], 'mentored'), ['mentor-review'], 'mentored', MEMBER);
     expect(tick).toEqual({ add: [], remove: [] });
     const untick = planMilestoneSave(
       new Set(['mentor-review']),
       allShown(['mentor-review'], 'mentored'),
       [],
       'mentored',
+      MEMBER,
     );
     expect(untick).toEqual({ add: [], remove: [] });
   });
@@ -120,7 +135,79 @@ describe('planMilestoneSave', () => {
       new Map([['comps', false]]),
       ['made-up', 'slides', 'comps'],
       'self-guided',
+      MEMBER,
     );
     expect(plan).toEqual({ add: ['comps'], remove: [] });
+  });
+
+  it('lets the assigned mentor tick and untick the mentor review', () => {
+    const tick = planMilestoneSave(new Set(), allShown([], 'mentored'), ['mentor-review'], 'mentored', MENTOR);
+    expect(tick).toEqual({ add: ['mentor-review'], remove: [] });
+    const untick = planMilestoneSave(
+      new Set(['mentor-review']),
+      allShown(['mentor-review'], 'mentored'),
+      [],
+      'mentored',
+      MENTOR,
+    );
+    expect(untick).toEqual({ add: [], remove: ['mentor-review'] });
+  });
+
+  it("never lets a mentor tick or untick the team's own milestones", () => {
+    const tick = planMilestoneSave(new Set(), allShown([], 'mentored'), ['comps', 'slides'], 'mentored', MENTOR);
+    expect(tick).toEqual({ add: [], remove: [] });
+    const untick = planMilestoneSave(
+      new Set(['company-picked']),
+      allShown(['company-picked'], 'mentored'),
+      [],
+      'mentored',
+      MENTOR,
+    );
+    expect(untick).toEqual({ add: [], remove: [] });
+  });
+
+  it('an admin who is not the mentor changes nothing', () => {
+    const plan = planMilestoneSave(new Set(), allShown([], 'mentored'), ['comps', 'mentor-review'], 'mentored', NOBODY);
+    expect(plan).toEqual({ add: [], remove: [] });
+  });
+});
+
+describe('canTick', () => {
+  const review = milestones.find((m) => m.key === 'mentor-review')!;
+  const comps = milestones.find((m) => m.key === 'comps')!;
+
+  it('members tick team steps, not the mentor review', () => {
+    expect(canTick(comps, MEMBER)).toBe(true);
+    expect(canTick(review, MEMBER)).toBe(false);
+  });
+
+  it('the assigned mentor (or an admin assigned as mentor) ticks only the mentor review', () => {
+    expect(canTick(review, MENTOR)).toBe(true);
+    expect(canTick(comps, MENTOR)).toBe(false);
+  });
+
+  it('an admin who is not the mentor ticks nothing', () => {
+    expect(canTick(review, NOBODY)).toBe(false);
+    expect(canTick(comps, NOBODY)).toBe(false);
+  });
+});
+
+describe('nextDueMilestone', () => {
+  it('is the first visible milestone not done, in words', () => {
+    const next = nextDueMilestone('self-guided', new Set(['company-picked']), '2026-12-22');
+    expect(next).toEqual({
+      label: 'Registered with YIS',
+      status: { text: 'Due Dec 19, 3 days late', state: 'late', date: '2026-12-19' },
+    });
+  });
+
+  it('skips the mentor review for teams without a mentor', () => {
+    const done = new Set(['company-picked', 'yis-registered', 'financials', 'comps', 'report-draft']);
+    expect(nextDueMilestone('self-guided', done, '2027-01-01')?.label).toBe('Slides done');
+    expect(nextDueMilestone('mentored', done, '2027-01-01')?.label).toBe('Mentor reviewed the draft');
+  });
+
+  it('is null when everything is done', () => {
+    expect(nextDueMilestone('mentored', new Set(milestones.map((m) => m.key)), '2027-01-01')).toBeNull();
   });
 });

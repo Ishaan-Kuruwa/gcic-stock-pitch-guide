@@ -116,8 +116,21 @@ Astro.response.headers.set('Cache-Control', 'private, no-store');
                 </button>
               </form>
               {profile.role === 'admin' && (
-                <a href="/admin/mentors" class:list={['font-bold', focus]}>
-                  Manage mentors
+                <>
+                  <a href="/admin/teams" class:list={['font-bold', focus]}>
+                    All teams
+                  </a>
+                  <a href="/mentor" class:list={['font-bold', focus]}>
+                    Teams I mentor
+                  </a>
+                  <a href="/admin/mentors" class:list={['font-bold', focus]}>
+                    Manage mentors
+                  </a>
+                </>
+              )}
+              {profile.role === 'mentor' && (
+                <a href="/mentor" class:list={['font-bold', focus]}>
+                  Your teams
                 </a>
               )}
             </div>

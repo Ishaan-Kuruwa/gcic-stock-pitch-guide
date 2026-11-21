@@ -43,7 +43,7 @@ const message =
   status === 'added'
     ? `Added ${statusEmail} as a mentor.`
     : status === 'removed'
-      ? `Removed ${statusEmail}. They are a member (mentee) now.`
+      ? `Removed ${statusEmail}. They are a member (mentee) now, and no longer mentor any team.`
       : null;
 const isError = status === 'invalid';
 
@@ -57,7 +57,8 @@ Astro.response.headers.set('Cache-Control', 'private, no-store');
     <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
     <p class="mt-5 text-lg leading-relaxed text-muted">
       People whose Google email is on this list get the mentor role when they sign in, and don't
-      need the club code. Removing an email takes effect right away.
+      need the club code. Removing an email takes effect right away: they stop mentoring their teams,
+      which then show "Needs a mentor" on <a href="/admin/teams" class:list={['font-bold', focus]}>All teams</a>.
     </p>
 
     {message && <p role="status" class="mt-6 rounded-md bg-tint p-4 font-bold break-words">{message}</p>}
@@ -110,6 +111,9 @@ Astro.response.headers.set('Cache-Control', 'private, no-store');
       }
     </section>
 
-    <p class="mt-10"><a href="/account" class:list={['font-bold', focus]}>Your account</a></p>
+    <p class="mt-10 flex flex-wrap gap-x-6 gap-y-2">
+      <a href="/admin/teams" class:list={['font-bold', focus]}>All teams</a>
+      <a href="/account" class:list={['font-bold', focus]}>Your account</a>
+    </p>
   </div>
 </BaseLayout>

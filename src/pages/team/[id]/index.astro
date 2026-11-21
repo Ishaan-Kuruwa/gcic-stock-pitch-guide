@@ -1,19 +1,35 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CheckinForm from '../../../components/CheckinForm.astro';
 import CopyButton from '../../../components/CopyButton';
 import GlossaryTerm from '../../../components/GlossaryTerm.astro';
 import { getCollection } from 'astro:content';
 import NotFound from '../../../components/NotFound.astro';
-import { claimBoardUrl } from '../../../data/club';
+import { claimBoardUrl, mentorship } from '../../../data/club';
 import { limits } from '../../../data/competition';
+import { getProfile } from '../../../db/accounts';
+import { addCheckin, listCheckins, updateCheckin } from '../../../db/checkins';
 import { getDb } from '../../../db/client';
 import { getTeamMilestones, saveTeamMilestones } from '../../../db/milestones';
+import { listAssignableMentors, setMentorship } from '../../../db/mentorship';
 import { countModuleProgress } from '../../../db/progress';
+import { MENTORSHIP_STATUSES } from '../../../db/schema';
 import { getTeam, regenerateJoinCode, setTeamLinks, updateTeamDetails } from '../../../db/teams';
-import { denied, requireProfile, teamViewAccess } from '../../../lib/guards';
+import { checkinStatusLabels, parseCheckinForm, type CheckinErrors, type CheckinRaw } from '../../../lib/checkins';
+import { formatShortDate, formatShortMonthDay } from '../../../lib/format';
+import {
+  allowedTeamActions,
+  denied,
+  requireProfile,
+  TEAM_ACTIONS,
+  teamCapabilities,
+  teamViewAccess,
+  type TeamAction,
+} from '../../../lib/guards';
+import { parseMentorshipForm, showMentorApplication } from '../../../lib/mentorship';
 import { crossSiteResponse, isSameOrigin } from '../../../lib/origin';
 import {
-  memberCanTick,
+  canTick,
   milestoneStatus,
   parseShown,
   planMilestoneSave,
@@ -48,11 +64,20 @@ Astro.response.headers.set('Cache-Control', 'private, no-store');
 
 const db = getDb();
 const teamId = Astro.params.id ?? '';
+const userId = access.user.id;
 let view = await getTeam(db, teamId);
 const memberIds = view?.members.map((m) => m.userId) ?? [];
-// Not a member (and not an admin), or no such team: the same 404 either way.
-const visible = view !== null && teamViewAccess(access.profile, memberIds) === 'ok';
-const isMember = memberIds.includes(access.user.id);
+const mentorId = view?.team.mentorId ?? null;
+// Not a member, not its mentor and not an admin, or no such team: the same 404 either way.
+const visible = view !== null && teamViewAccess(access.profile, memberIds, mentorId) === 'ok';
+// What this viewer is to the team. An admin assigned as mentor is both.
+const caps = teamCapabilities(access.profile, memberIds, mentorId);
+const isMember = caps.member;
+const isMentor = caps.mentor;
+const isAdmin = caps.admin;
+const allowed = allowedTeamActions(caps);
+const today = todayIn();
+const pageUrl = `/team/${teamId}`;
 
 let detailsErrors: DetailsErrors = {};
 let detailsValues = { company: view?.team.company ?? '', ticker: view?.team.ticker ?? '' };
@@ -60,20 +85,31 @@ let linkErrors: Partial<Record<TeamLinkKind, string>> = {};
 let linkValues: Record<TeamLinkKind, string> = Object.fromEntries(
   TEAM_LINK_KINDS.map((k) => [k, view?.links[k] ?? '']),
 ) as Record<TeamLinkKind, string>;
+let mentorshipError: string | null = null;
+let mentorshipValues = { status: view?.team.mentorshipStatus ?? 'self-guided', mentorId: mentorId ?? '' };
+// The check-in form that failed, to show it again with its errors: 'new' or a check-in id.
+let checkinFormWithErrors: string | null = null;
+let checkinErrors: CheckinErrors = {};
+let checkinRaw: CheckinRaw | null = null;
+const mentors = visible && isAdmin ? await listAssignableMentors(db) : [];
+
+function isTeamAction(value: unknown): value is TeamAction {
+  return (TEAM_ACTIONS as readonly unknown[]).includes(value);
+}
 
 if (!visible) {
   Astro.response.status = 404;
 } else if (Astro.request.method === 'POST') {
   if (!isSameOrigin(Astro.request)) return crossSiteResponse();
-  // Admins can look but not change anything in this phase.
-  if (!isMember) return Astro.redirect(`/team/${teamId}`, 303);
   const form = await Astro.request.formData();
   const action = form.get('action');
+  // Each form is checked against what this viewer may do; anything else changes nothing.
+  if (!isTeamAction(action) || !allowed.has(action)) return Astro.redirect(pageUrl, 303);
   if (action === 'details') {
     const parsed = parseDetailsForm(form);
     if (parsed.ok) {
       await updateTeamDetails(db, teamId, parsed.value);
-      return Astro.redirect(`/team/${teamId}?status=details#company`, 303);
+      return Astro.redirect(`${pageUrl}?status=details#company`, 303);
     }
     detailsErrors = parsed.errors;
     detailsValues = { company: String(form.get('company') ?? ''), ticker: String(form.get('ticker') ?? '') };
@@ -81,7 +117,7 @@ if (!visible) {
     const parsed = parseLinksForm(form);
     if (parsed.ok) {
       await setTeamLinks(db, teamId, parsed.value);
-      return Astro.redirect(`/team/${teamId}?status=links#files`, 303);
+      return Astro.redirect(`${pageUrl}?status=links#files`, 303);
     }
     linkErrors = parsed.errors;
     linkValues = parsed.values;
@@ -92,12 +128,46 @@ if (!visible) {
       parseShown(form.getAll('shown')),
       form.getAll('milestone'),
       view!.team.mentorshipStatus,
+      caps,
     );
-    await saveTeamMilestones(db, teamId, access.user.id, plan);
-    return Astro.redirect(`/team/${teamId}?status=milestones#milestones`, 303);
+    await saveTeamMilestones(db, teamId, userId, plan);
+    return Astro.redirect(`${pageUrl}?status=milestones#milestones`, 303);
   } else if (action === 'new-code') {
     await regenerateJoinCode(db, teamId);
-    return Astro.redirect(`/team/${teamId}?status=code#join-code`, 303);
+    return Astro.redirect(`${pageUrl}?status=code#join-code`, 303);
+  } else if (action === 'mentorship') {
+    const parsed = parseMentorshipForm(form, mentors.map((m) => m.userId));
+    if (parsed.ok) {
+      await setMentorship(db, teamId, parsed.value.status, parsed.value.mentorId);
+      return Astro.redirect(`${pageUrl}?status=mentorship#mentorship`, 303);
+    }
+    mentorshipError = parsed.error;
+    // Show what the admin picked, so they can fix it.
+    mentorshipValues = {
+      status: String(form.get('mentorship_status') ?? '') as typeof mentorshipValues.status,
+      mentorId: String(form.get('mentor_id') ?? ''),
+    };
+  } else if (action === 'checkin-add') {
+    const parsed = parseCheckinForm(form, today);
+    if (parsed.ok) {
+      await addCheckin(db, teamId, userId, parsed.value);
+      return Astro.redirect(`${pageUrl}?status=checkin-added#checkins`, 303);
+    }
+    checkinFormWithErrors = 'new';
+    checkinErrors = parsed.errors;
+    checkinRaw = parsed.raw;
+  } else if (action === 'checkin-edit') {
+    const checkinId = String(form.get('checkin_id') ?? '');
+    const parsed = parseCheckinForm(form, today);
+    if (parsed.ok) {
+      // Only changes the mentor's own check-in on this team.
+      const saved = await updateCheckin(db, checkinId, teamId, userId, parsed.value);
+      const to = saved ? `${pageUrl}?status=checkin-saved#checkin-${checkinId}` : `${pageUrl}#checkins`;
+      return Astro.redirect(to, 303);
+    }
+    checkinFormWithErrors = checkinId;
+    checkinErrors = parsed.errors;
+    checkinRaw = parsed.raw;
   }
   view = await getTeam(db, teamId);
 }
@@ -107,7 +177,10 @@ const statusMessages: Record<string, string> = {
   details: 'Saved your company and ticker.',
   links: 'Saved your links.',
   code: 'Made a new join code. The old code no longer works.',
-  milestones: 'Saved your milestones.',
+  milestones: 'Saved the milestones.',
+  mentorship: 'Saved the mentorship status and mentor.',
+  'checkin-added': 'Logged your check-in.',
+  'checkin-saved': 'Saved your changes to the check-in.',
 };
 const statusMessage = status ? (statusMessages[status] ?? null) : null;
 const detailsErrorList = Object.values(detailsErrors);
@@ -127,13 +200,41 @@ const moduleCounts = visible
     )
   : new Map<string, number>();
 const doneMilestones = visible ? await getTeamMilestones(db, teamId) : new Map<string, Date>();
-const today = todayIn();
 const milestoneRows = team
   ? visibleMilestones(team.mentorshipStatus).map((m) => {
       const doneAt = doneMilestones.get(m.key) ?? null;
       return { ...m, done: doneAt !== null, status: milestoneStatus(m.due, doneAt, today) };
     })
   : [];
+// Members tick the team's steps; the mentor ticks the mentor review.
+const showMilestoneForm = isMember || (isMentor && team?.mentorshipStatus === 'mentored');
+
+// Mentorship and check-ins.
+const mentorProfile = visible && team?.mentorId ? await getProfile(db, team.mentorId) : null;
+const mentorName = mentorProfile?.name ?? null;
+const showApplication =
+  isMember && team !== undefined && showMentorApplication(team.mentorshipStatus, mentorship.applicationUrl, today);
+const checkinList = visible ? await listCheckins(db, teamId) : [];
+// ?edit=<id> opens the edit form for one of the mentor's own check-ins.
+const editParam = Astro.url.searchParams.get('edit');
+const editingId =
+  checkinFormWithErrors && checkinFormWithErrors !== 'new'
+    ? checkinFormWithErrors
+    : isMentor && editParam && checkinList.some((c) => c.id === editParam && c.mentorId === userId)
+      ? editParam
+      : null;
+const blankCheckin: CheckinRaw = { metOn: today, covered: '', nextStep: '', status: '' };
+function editValues(id: string): CheckinRaw {
+  if (checkinRaw && checkinFormWithErrors === id) return checkinRaw;
+  const c = checkinList.find((x) => x.id === id);
+  return c ? { metOn: c.metOn, covered: c.covered, nextStep: c.nextStep, status: c.status } : blankCheckin;
+}
+const showJoinCode = isMember || isAdmin;
+const lede = isMember
+  ? 'Your team: who is on it, your company, your milestones, and links to your own files.'
+  : isMentor
+    ? "You are this team's mentor. You can mark the mentor review and log check-ins. Only members can change the rest."
+    : 'You are viewing this team as a club officer. Only members can change the team; you can set its mentorship below.';
 ---
 
 {
@@ -145,11 +246,7 @@ const milestoneRows = team
         <p class={eyebrow}>Team</p>
         <h1 class="mt-2 break-words text-5xl font-black sm:text-6xl">{team.name}</h1>
         <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight" />
-        <p class="mt-5 text-lg leading-relaxed text-muted">
-          {isMember
-            ? 'Your team: who is on it, your company, your milestones, and links to your own files.'
-            : 'You are viewing this team as a club officer. Only members can change it.'}
-        </p>
+        <p class="mt-5 text-lg leading-relaxed text-muted">{lede}</p>
 
         {statusMessage && (
           <p role="status" class="mt-6 rounded-md bg-tint p-4 font-bold">
@@ -173,34 +270,38 @@ const milestoneRows = team
               </li>
             ))}
           </ul>
-          <p class="mt-4">
-            {members.length === 1
-              ? `Competing solo, or share the join code to add a partner (max ${limits.maxTeamSize}).`
-              : full
-                ? `Your team is full (max ${limits.maxTeamSize}).`
-                : `Share the join code to add a teammate (max ${limits.maxTeamSize}).`}
-          </p>
+          {showJoinCode && (
+            <>
+              <p class="mt-4">
+                {members.length === 1
+                  ? `Competing solo, or share the join code to add a partner (max ${limits.maxTeamSize}).`
+                  : full
+                    ? `Your team is full (max ${limits.maxTeamSize}).`
+                    : `Share the join code to add a teammate (max ${limits.maxTeamSize}).`}
+              </p>
 
-          <h3 id="join-code" class="mt-6 text-2xl font-extrabold">
-            Join code
-          </h3>
-          <div class="mt-2 flex flex-wrap items-center gap-4">
-            <code class="rounded-md bg-tint px-3 py-2 font-mono text-2xl font-bold tracking-widest select-all">
-              {team.joinCode}
-            </code>
-            <CopyButton client:visible text={team.joinCode} label="join code" />
-          </div>
-          <p class="mt-2 text-sm text-muted">
-            Capital letters don't matter when someone types it in at /team/join.
-          </p>
-          {isMember && (
-            <form method="post" class="mt-4">
-              <input type="hidden" name="action" value="new-code" />
-              <p class="text-sm text-muted">Shared the code too widely? Make a new one. The old code stops working.</p>
-              <button type="submit" class:list={['mt-2', buttonSecondary, focus, 'cursor-pointer py-2']}>
-                New join code
-              </button>
-            </form>
+              <h3 id="join-code" class="mt-6 text-2xl font-extrabold">
+                Join code
+              </h3>
+              <div class="mt-2 flex flex-wrap items-center gap-4">
+                <code class="rounded-md bg-tint px-3 py-2 font-mono text-2xl font-bold tracking-widest select-all">
+                  {team.joinCode}
+                </code>
+                <CopyButton client:visible text={team.joinCode} label="join code" />
+              </div>
+              <p class="mt-2 text-sm text-muted">
+                Capital letters don't matter when someone types it in at /team/join.
+              </p>
+              {isMember && (
+                <form method="post" class="mt-4">
+                  <input type="hidden" name="action" value="new-code" />
+                  <p class="text-sm text-muted">Shared the code too widely? Make a new one. The old code stops working.</p>
+                  <button type="submit" class:list={['mt-2', buttonSecondary, focus, 'cursor-pointer py-2']}>
+                    New join code
+                  </button>
+                </form>
+              )}
+            </>
           )}
         </section>
 
@@ -290,17 +391,18 @@ const milestoneRows = team
             Milestones
           </h2>
           <p class="mt-3">
-            GHIC's checklist for your team, with the club's due dates.{' '}
+            GHIC's checklist for {isMember ? 'your' : 'the'} team, with the club's due dates.{' '}
             {isMember && 'Tick what you have finished, then save.'}
+            {!isMember && isMentor && 'Tick "Mentor reviewed the draft" once you have reviewed it, then save.'}
           </p>
-          {isMember ? (
+          {showMilestoneForm ? (
             <form method="post" class="mt-4">
               <input type="hidden" name="action" value="milestones" />
               <fieldset>
                 <legend class="sr-only">Milestones done</legend>
                 <ul class="space-y-3">
                   {milestoneRows.map((m) => {
-                    const canTick = memberCanTick(m);
+                    const tickable = canTick(m, caps);
                     return (
                       <li class="flex gap-3 rounded-md border border-border p-3">
                         <input type="hidden" name="shown" value={`${m.key}:${m.done ? 1 : 0}`} />
@@ -310,7 +412,7 @@ const milestoneRows = team
                           name="milestone"
                           value={m.key}
                           checked={m.done}
-                          disabled={!canTick}
+                          disabled={!tickable}
                           aria-describedby={`milestone-${m.key}-status`}
                           class:list={[
                             'mt-1 size-6 shrink-0 accent-accent disabled:cursor-not-allowed disabled:opacity-60',
@@ -320,7 +422,7 @@ const milestoneRows = team
                         <div class="min-w-0 flex-1">
                           <label
                             for={`milestone-${m.key}`}
-                            class:list={['block break-words font-bold', canTick && 'cursor-pointer']}
+                            class:list={['block break-words font-bold', tickable && 'cursor-pointer']}
                           >
                             {m.label}
                           </label>
@@ -329,7 +431,9 @@ const milestoneRows = team
                             class:list={['text-muted', m.status.state === 'late' && 'font-bold']}
                           >
                             <time datetime={m.status.date}>{m.status.text}</time>
-                            {!canTick && <span class="block">Your mentor marks this</span>}
+                            {!tickable && (
+                              <span class="block">{isMember ? 'Your mentor marks this' : 'Team members mark this'}</span>
+                            )}
                           </p>
                         </div>
                       </li>
@@ -338,7 +442,7 @@ const milestoneRows = team
                 </ul>
               </fieldset>
               <button type="submit" class:list={['mt-4', buttonPrimary, focus, 'cursor-pointer']}>
-                Save milestones
+                {isMember ? 'Save milestones' : 'Save mentor review'}
               </button>
             </form>
           ) : (
@@ -431,11 +535,177 @@ const milestoneRows = team
           )}
         </section>
 
-        <section aria-labelledby="mentorship" class:list={['mt-8', card]}>
-          <h2 id="mentorship" class="text-3xl font-extrabold">
+        <section id="mentorship" aria-labelledby="mentorship-heading" class:list={['mt-8', card]}>
+          <h2 id="mentorship-heading" class="text-3xl font-extrabold">
             Mentorship
           </h2>
           <p class="mt-3 text-lg">{mentorshipLabels[team.mentorshipStatus]}</p>
+          {team.mentorId && (
+            <p class="mt-1 break-words text-lg">
+              Mentor: {mentorName ? (isAdmin ? mentorName : firstName(mentorName)) : 'Mentor'}
+              {team.mentorId === userId && <span class="text-muted"> (you)</span>}
+            </p>
+          )}
+          {isAdmin && team.mentorshipStatus === 'mentored' && !team.mentorId && (
+            <p class="mt-1 text-lg font-bold">Needs a mentor</p>
+          )}
+          {showApplication && (
+            <p class="mt-4 rounded-md bg-tint p-4">
+              Want a mentor?{' '}
+              <a href={mentorship.applicationUrl!} class:list={['font-bold', focus]}>
+                Apply with the club form by {formatShortMonthDay(mentorship.closes)}
+              </a>
+            </p>
+          )}
+
+          {isAdmin && (
+            <>
+              <h3 class="mt-6 text-2xl font-extrabold">Set mentorship</h3>
+              <p id="mentorship-hint" class="mt-2">
+                For officers, after the application form is scored. A team marked "{mentorshipLabels.mentored}" needs
+                a mentor. Changing the mentor keeps past check-ins.
+              </p>
+              {mentorshipError && (
+                <p role="alert" class="mt-4 rounded-md border-2 border-danger p-4 font-bold text-danger">
+                  Error: {mentorshipError}
+                </p>
+              )}
+              <form method="post" class="mt-4 space-y-4" novalidate>
+                <input type="hidden" name="action" value="mentorship" />
+                <div>
+                  <label for="mentorship-status" class="block text-lg font-bold">
+                    Status
+                  </label>
+                  <select
+                    id="mentorship-status"
+                    name="mentorship_status"
+                    aria-describedby="mentorship-hint"
+                    class:list={['mt-1', input]}
+                  >
+                    {MENTORSHIP_STATUSES.map((s) => (
+                      <option value={s} selected={mentorshipValues.status === s}>
+                        {mentorshipLabels[s]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label for="mentorship-mentor" class="block text-lg font-bold">
+                    Mentor
+                  </label>
+                  <select
+                    id="mentorship-mentor"
+                    name="mentor_id"
+                    aria-invalid={mentorshipError ? 'true' : undefined}
+                    class:list={['mt-1', input]}
+                  >
+                    <option value="" selected={mentorshipValues.mentorId === ''}>
+                      No mentor
+                    </option>
+                    {mentors.map((m) => (
+                      <option value={m.userId} selected={mentorshipValues.mentorId === m.userId}>
+                        {m.name} ({m.email})
+                      </option>
+                    ))}
+                  </select>
+                  {mentors.length === 0 && (
+                    <p class="mt-1 text-sm text-muted">
+                      No mentors have signed up yet. Add them at{' '}
+                      <a href="/admin/mentors" class:list={['font-bold', focus]}>
+                        Mentors
+                      </a>
+                      ; they appear here once they sign in.
+                    </p>
+                  )}
+                </div>
+                <button type="submit" class:list={[buttonPrimary, focus, 'cursor-pointer']}>
+                  Save mentorship
+                </button>
+              </form>
+            </>
+          )}
+        </section>
+
+        <section id="checkins" aria-labelledby="checkins-heading" class:list={['mt-8', card]}>
+          <h2 id="checkins-heading" class="text-3xl font-extrabold">
+            Check-ins
+          </h2>
+          <p class="mt-3">
+            {isMember
+              ? 'Notes from your mentor after each meeting: what you covered, the next step, and how you are doing.'
+              : "The mentor's notes from each meeting with the team."}
+          </p>
+
+          {isMentor && (
+            <>
+              <h3 class="mt-6 text-2xl font-extrabold">Log a check-in</h3>
+              <p class="mt-2 font-bold">The team can read these notes, so write them to the team.</p>
+              <CheckinForm
+                idPrefix="new"
+                action="checkin-add"
+                values={checkinFormWithErrors === 'new' && checkinRaw ? checkinRaw : blankCheckin}
+                errors={checkinFormWithErrors === 'new' ? checkinErrors : {}}
+                today={today}
+                submitLabel="Log check-in"
+              />
+            </>
+          )}
+
+          {isMentor && <h3 class="mt-8 text-2xl font-extrabold">Past check-ins</h3>}
+          {checkinList.length === 0 ? (
+            <p class="mt-4 text-muted">No check-ins yet.</p>
+          ) : (
+            <ol class="mt-4 space-y-4">
+              {checkinList.map((c) => (
+                <li id={`checkin-${c.id}`} class="rounded-md border border-border p-4">
+                  {editingId === c.id ? (
+                    <>
+                      <p class="font-bold">Edit your check-in</p>
+                      <CheckinForm
+                        idPrefix={c.id}
+                        action="checkin-edit"
+                        checkinId={c.id}
+                        values={editValues(c.id)}
+                        errors={checkinFormWithErrors === c.id ? checkinErrors : {}}
+                        today={today}
+                        submitLabel="Save changes"
+                        cancelHref={`${pageUrl}#checkin-${c.id}`}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <p class="font-bold">
+                        <time datetime={c.metOn}>{formatShortDate(c.metOn)}</time>: {checkinStatusLabels[c.status]}
+                      </p>
+                      <p class="mt-1 text-sm text-muted">
+                        {c.mentorId === null
+                          ? 'Logged by a former mentor'
+                          : c.mentorId === userId
+                            ? 'Logged by you'
+                            : `Logged by ${c.mentorName ? firstName(c.mentorName) : 'a mentor'}`}
+                      </p>
+                      <h4 class="mt-3 font-bold">Covered</h4>
+                      <p class="whitespace-pre-line break-words">{c.covered}</p>
+                      {c.nextStep && (
+                        <>
+                          <h4 class="mt-3 font-bold">Next step</h4>
+                          <p class="whitespace-pre-line break-words">{c.nextStep}</p>
+                        </>
+                      )}
+                      {isMentor && c.mentorId === userId && (
+                        <a
+                          href={`${pageUrl}?edit=${encodeURIComponent(c.id)}#checkin-${c.id}`}
+                          class:list={['mt-3 inline-block font-bold', focus]}
+                        >
+                          Edit<span class="sr-only"> the check-in from {formatShortDate(c.metOn)}</span>
+                        </a>
+                      )}
+                    </>
+                  )}
+                </li>
+              ))}
+            </ol>
+          )}
         </section>
 
         {isMember && (
@@ -445,7 +715,7 @@ const milestoneRows = team
             </h2>
             <p class="mt-2 text-muted">
               {members.length === 1
-                ? "You're the only member, so leaving deletes the team and its links. You'll be asked to confirm."
+                ? "You're the only member, so leaving deletes the team, its links and its check-in notes. You'll be asked to confirm."
                 : "Your teammate keeps the team. You'll be asked to confirm."}
             </p>
             <a href={`/team/${team.id}/leave`} class:list={['mt-4', buttonSecondary, focus]}>

@@ -78,3 +78,22 @@ export const milestones = [
 ] as const satisfies readonly Milestone[];
 
 export type MilestoneKey = (typeof milestones)[number]['key'];
+
+/**
+ * GHIC's mentorship program. Applications stay on a Google Form this season;
+ * the site only links to it. Officers score the form, then assign mentors on
+ * the team page (see docs/accounts-setup.md, "How mentoring works on the site").
+ */
+export const mentorship: {
+  /** The Google Form link. While null, the team page doesn't show the "Want a mentor?" notice. */
+  applicationUrl: string | null;
+  /** Last day to apply (YYYY-MM-DD, club time zone). The notice hides after this day. */
+  closes: string;
+  /** Mentors meet each team at least this often; /admin/teams flags teams past it. */
+  checkinEveryDays: number;
+} = {
+  // TODO(officers): paste the mentor application Google Form link here.
+  applicationUrl: null,
+  closes: '2026-12-08',
+  checkinEveryDays: 14,
+};

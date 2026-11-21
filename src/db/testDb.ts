@@ -11,6 +11,7 @@ import type { Db } from './accounts';
 import {
   account,
   appSchema,
+  checkins,
   clubCodeAttempts,
   mentorInvites,
   moduleProgress,
@@ -43,6 +44,7 @@ export async function startTestDb(): Promise<TestDb> {
 /** Empty every table, children first. */
 export async function resetDb(db: Db): Promise<void> {
   await db.batch([
+    db.delete(checkins),
     db.delete(moduleProgress),
     db.delete(teamMilestones),
     db.delete(teamLinks),

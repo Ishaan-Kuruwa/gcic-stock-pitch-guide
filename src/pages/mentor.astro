@@ -1,0 +1,92 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { mentorship } from '../data/club';
+import { getDb } from '../db/client';
+import { getTeamsOverview } from '../db/mentorship';
+import { denied, requireRole } from '../lib/guards';
+import { overviewRows } from '../lib/mentorship';
+import { todayIn } from '../lib/milestones';
+import { card, eyebrow, fadeDelay, fadeUp, focus, lift } from '../lib/styles';
+
+// Mentors, and admins who mentor a team. Server-rendered per visit.
+export const prerender = false;
+
+const access = requireRole(Astro.locals, 'mentor');
+if (!access.ok) return denied(Astro, access);
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+
+const isAdmin = access.profile.role === 'admin';
+const rows = overviewRows(await getTeamsOverview(getDb(), { mentorId: access.user.id }), todayIn());
+---
+
+<BaseLayout title="Your teams" description="The GHIC teams you mentor." noindex>
+  <div class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}>Mentor</p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">{isAdmin ? 'Teams I mentor' : 'Your teams'}</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      The teams you mentor. Meet each team at least every {mentorship.checkinEveryDays} days and log a check-in on its
+      team page. You can also tick "Mentor reviewed the draft" there.
+    </p>
+    {
+      isAdmin && (
+        <p class="mt-4">
+          <a href="/admin/teams" class:list={['font-bold', focus]}>
+            All teams
+          </a>
+        </p>
+      )
+    }
+
+    {
+      rows.length === 0 ? (
+        <p class="mt-8 rounded-md bg-tint p-4">
+          {isAdmin ? "You aren't mentoring any teams." : 'No teams yet. A club officer will assign you one.'}
+        </p>
+      ) : (
+        <ul class="mt-8 space-y-4">
+          {rows.map((r, i) => (
+            <li class:list={[card, lift, fadeUp, 'relative']} style={fadeDelay(i)}>
+              <h2 class="break-words text-3xl font-extrabold">
+                <a href={`/team/${r.id}`} class:list={['rounded no-underline after:absolute after:inset-0 after:rounded-xl hover:underline', focus]}>
+                  {r.name}
+                </a>
+              </h2>
+              <p class="mt-1 break-words text-muted">
+                {r.members || 'No members'} · {r.company}
+              </p>
+              {r.flagText && <p class="mt-3 font-bold">{r.flagText}</p>}
+              <dl class="mt-3 space-y-2">
+                <div>
+                  <dt class="text-sm font-bold text-muted">Milestones</dt>
+                  <dd>
+                    {r.done} of {r.total} done
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-bold text-muted">Next due</dt>
+                  <dd class:list={[r.nextDue?.status.state === 'late' && 'font-bold']}>
+                    {r.nextDue ? (
+                      <>
+                        {r.nextDue.label}: <time datetime={r.nextDue.status.date}>{r.nextDue.status.text}</time>
+                      </>
+                    ) : (
+                      'All done'
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-bold text-muted">Last check-in</dt>
+                  <dd>{r.lastCheckin ? <time datetime={r.lastMetOn!}>{r.lastCheckin}</time> : 'None yet'}</dd>
+                </div>
+              </dl>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    <p class="mt-10"><a href="/account" class:list={['font-bold', focus]}>Your account</a></p>
+  </div>
+</BaseLayout>

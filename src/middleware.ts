@@ -1,7 +1,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import type { AstroCookies } from 'astro';
 import type { Profile } from './db/schema';
-import { encodeNavHint, NAV_HINT_COOKIE, NAV_HINT_MAX_AGE } from './lib/navHint';
+import { accountHrefFor, encodeNavHint, NAV_HINT_COOKIE, NAV_HINT_MAX_AGE } from './lib/navHint';
 import { firstName, isProfileComplete } from './lib/profile';
 
 /**
@@ -41,7 +41,7 @@ function syncNavHint(cookies: AstroCookies, url: URL, profile: Profile | null) {
   if (profile && profile.name && isProfileComplete(profile)) {
     const value = encodeNavHint({
       name: firstName(profile.name),
-      href: profile.role === 'admin' ? '/admin/mentors' : '/account',
+      href: accountHrefFor(profile.role),
     });
     if (current === value) return;
     cookies.set(NAV_HINT_COOKIE, value, {
