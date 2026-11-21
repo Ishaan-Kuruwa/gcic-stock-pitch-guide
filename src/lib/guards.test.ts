@@ -1,7 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { User } from 'better-auth';
 import type { Profile } from '../db/schema';
-import { denied, requireProfile, requireRole, requireUser, type GuardLocals } from './guards';
+import {
+  denied,
+  requireMentee,
+  requireProfile,
+  requireRole,
+  requireUser,
+  teamViewAccess,
+  type GuardLocals,
+} from './guards';
 
 const user = { id: 'u1', name: 'Ada', email: 'ada@example.com' } as User;
 const profile = (over: Partial<Profile> = {}): Profile => ({
@@ -80,4 +88,24 @@ describe('denied', () => {
     expect(ctx.rewrite).toHaveBeenCalledWith('/403');
     expect(res.status).toBe(403);
   });
+});
+
+describe('requireMentee', () => {
+  it('signed out → sign in', () => expect(requireMentee(signedOut)).toEqual({ ok: false, reason: 'signin' }));
+  it('unfinished → /join', () => expect(requireMentee(unfinished)).toEqual({ ok: false, reason: 'join' }));
+  it('mentee → allowed', () => expect(requireMentee(mentee).ok).toBe(true));
+  it('mentor → forbidden', () => expect(requireMentee(mentor)).toEqual({ ok: false, reason: 'forbidden' }));
+  it('admin → forbidden', () => expect(requireMentee(admin)).toEqual({ ok: false, reason: 'forbidden' }));
+});
+
+describe('teamViewAccess', () => {
+  const members = ['u1', 'u2'];
+  it('member → ok', () => expect(teamViewAccess(profile(), members)).toBe('ok'));
+  it('non-member mentee → not found (404, not 403)', () => {
+    expect(teamViewAccess(profile({ userId: 'u9' }), members)).toBe('notfound');
+  });
+  it('non-member mentor → not found until mentors get access', () => {
+    expect(teamViewAccess(profile({ userId: 'u9', role: 'mentor' }), members)).toBe('notfound');
+  });
+  it('admin → ok', () => expect(teamViewAccess(profile({ userId: 'u9', role: 'admin' }), members)).toBe('ok'));
 });

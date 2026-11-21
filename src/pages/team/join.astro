@@ -1,0 +1,131 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { limits } from '../../data/competition';
+import { getDb } from '../../db/client';
+import { getTeamIdForUser, joinTeam, recentWrongTeamCodes, recordWrongTeamCode } from '../../db/teams';
+import { isLockedOut, minutesUntilRetry, triesLeft } from '../../lib/clubCode';
+import { denied, requireMentee } from '../../lib/guards';
+import { crossSiteResponse, isSameOrigin } from '../../lib/origin';
+import { MAX_JOIN_TRIES, normalizeJoinCode } from '../../lib/teams';
+import { buttonPrimary, buttonSecondary, card, eyebrow, fadeUp, focus, input } from '../../lib/styles';
+
+export const prerender = false;
+
+const access = requireMentee(Astro.locals);
+if (!access.ok) return denied(Astro, access);
+
+const db = getDb();
+const userId = access.user.id;
+let currentTeamId = await getTeamIdForUser(db, userId);
+let code = '';
+let error: string | null = null;
+let lockedMinutes = 0;
+
+const now = new Date();
+const tries = await recentWrongTeamCodes(db, userId, now);
+if (isLockedOut(tries, now, MAX_JOIN_TRIES)) lockedMinutes = minutesUntilRetry(tries, now, MAX_JOIN_TRIES);
+
+if (Astro.request.method === 'POST' && !currentTeamId && lockedMinutes === 0) {
+  if (!isSameOrigin(Astro.request)) return crossSiteResponse();
+  const form = await Astro.request.formData();
+  const raw = form.get('code');
+  code = typeof raw === 'string' ? raw : '';
+  if (normalizeJoinCode(code) === '') {
+    error = 'Enter the join code your teammate gave you.';
+  } else {
+    const result = await joinTeam(db, userId, code, limits.maxTeamSize);
+    if (result.ok) return Astro.redirect(`/team/${result.teamId}`, 303);
+    if (result.reason === 'full') {
+      error = `That team is full (${limits.maxTeamSize} students is the most). Create your own team instead.`;
+    } else if (result.reason === 'already-on-team') {
+      currentTeamId = await getTeamIdForUser(db, userId);
+    } else {
+      await recordWrongTeamCode(db, userId, now);
+      const after = await recentWrongTeamCodes(db, userId, now);
+      if (isLockedOut(after, now, MAX_JOIN_TRIES)) {
+        lockedMinutes = minutesUntilRetry(after, now, MAX_JOIN_TRIES);
+      } else {
+        const left = triesLeft(after, now, MAX_JOIN_TRIES);
+        error = `No team has that join code. Check it with your teammate. You have ${left} ${left === 1 ? 'try' : 'tries'} left this hour.`;
+      }
+    }
+  }
+}
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+---
+
+<BaseLayout title="Join a team" description="Join a GHIC stock pitch team with a code." noindex>
+  <div class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}>Team</p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">Join a team</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      Enter the join code from your teammate's team page. A team has at most {limits.maxTeamSize} students.
+    </p>
+
+    {
+      currentTeamId ? (
+        <section aria-labelledby="already" class:list={['mt-8', card]}>
+          <h2 id="already" class="text-3xl font-extrabold">
+            You're already on a team
+          </h2>
+          <p class="mt-3">You can be on one team at a time. To join another, leave your team first.</p>
+          <a href={`/team/${currentTeamId}`} class:list={['mt-6', buttonPrimary, focus]}>
+            Go to your team
+          </a>
+        </section>
+      ) : (
+        <>
+          {lockedMinutes > 0 && (
+            <p role="alert" class="mt-6 rounded-md border-2 border-danger p-4 font-bold text-danger">
+              {`Too many wrong join codes. Try again in ${lockedMinutes} ${lockedMinutes === 1 ? 'minute' : 'minutes'}, or ask your teammate to check the code on their team page.`}
+            </p>
+          )}
+          {error && (
+            <p role="alert" class="mt-6 rounded-md border-2 border-danger p-4 font-bold text-danger">
+              Error: {error}
+            </p>
+          )}
+          <form method="post" class:list={['mt-8 space-y-6', card]} novalidate>
+            <div>
+              <label for="join-code" class="block text-lg font-bold">
+                Join code
+              </label>
+              <p id="join-code-hint" class="text-sm text-muted">
+                6 letters and numbers. Capital letters don't matter.
+              </p>
+              <input
+                id="join-code"
+                name="code"
+                type="text"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                required
+                maxlength={20}
+                value={code}
+                disabled={lockedMinutes > 0}
+                aria-invalid={error ? 'true' : undefined}
+                aria-describedby="join-code-hint"
+                class:list={['mt-1 font-mono uppercase', input]}
+              />
+            </div>
+            <div class="flex flex-wrap items-center gap-4">
+              <button
+                type="submit"
+                disabled={lockedMinutes > 0}
+                class:list={[buttonPrimary, focus, 'cursor-pointer disabled:cursor-not-allowed disabled:opacity-60']}
+              >
+                Join team
+              </button>
+              <a href="/team/new" class:list={[buttonSecondary, focus]}>
+                Create a team instead
+              </a>
+            </div>
+          </form>
+        </>
+      )
+    }
+  </div>
+</BaseLayout>

@@ -1,7 +1,7 @@
 /**
  * Accounts database (Cloudflare D1, SQLite). The first four are Better Auth's
  * core tables, matching `getAuthTables()` in better-auth 1.7; the club tables
- * (profiles, mentor_invites, club_code_attempts) follow. Change this file, then
+ * (profiles, mentor_invites, club_code_attempts) and team tables follow. Change this file, then
  * run `npm run db:generate` to write a new migration in drizzle/migrations.
  *
  * Data rule (CLAUDE.md): Google name and email only. `user.image` and the
@@ -9,7 +9,7 @@
  * src/lib/authOptions.ts always writes null to them.
  */
 import { sql } from 'drizzle-orm';
-import { check, index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { check, index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 /** Milliseconds since the epoch, as Better Auth's own generator writes it. */
 const nowMs = sql`(cast(unixepoch('subsecond') * 1000 as integer))`;
@@ -139,7 +139,94 @@ export const clubCodeAttempts = sqliteTable(
   (table) => [index('club_code_attempts_userId_idx').on(table.userId)],
 );
 
-/** Every table, for Drizzle queries in src/db/accounts.ts. */
-export const appSchema = { ...authSchema, profiles, mentorInvites, clubCodeAttempts };
+// ---------------------------------------------------------------------------
+// Teams (Phase C). A student is on at most one team (team_members.user_id is
+// the primary key). The site stores links to students' own files, never the
+// files' contents.
+// ---------------------------------------------------------------------------
+
+export const MENTORSHIP_STATUSES = ['self-guided', 'applied', 'mentored', 'declined'] as const;
+export type MentorshipStatus = (typeof MENTORSHIP_STATUSES)[number];
+
+export const TEAM_LINK_KINDS = ['report', 'slides', 'financials', 'comps', 'video'] as const;
+export type TeamLinkKind = (typeof TEAM_LINK_KINDS)[number];
+
+export const teams = sqliteTable(
+  'teams',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    joinCode: text('join_code').notNull().unique(),
+    company: text('company'),
+    ticker: text('ticker'),
+    mentorshipStatus: text('mentorship_status', { enum: MENTORSHIP_STATUSES })
+      .default('self-guided')
+      .notNull(),
+    mentorId: text('mentor_id').references(() => user.id, { onDelete: 'set null' }),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(nowMs).notNull(),
+  },
+  (table) => [
+    check(
+      'teams_mentorship_status_check',
+      sql`${table.mentorshipStatus} in ('self-guided', 'applied', 'mentored', 'declined')`,
+    ),
+  ],
+);
+
+export const teamMembers = sqliteTable(
+  'team_members',
+  {
+    teamId: text('team_id')
+      .notNull()
+      .references(() => teams.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .primaryKey()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    joinedAt: integer('joined_at', { mode: 'timestamp_ms' }).default(nowMs).notNull(),
+  },
+  (table) => [index('team_members_teamId_idx').on(table.teamId)],
+);
+
+export const teamLinks = sqliteTable(
+  'team_links',
+  {
+    teamId: text('team_id')
+      .notNull()
+      .references(() => teams.id, { onDelete: 'cascade' }),
+    kind: text('kind', { enum: TEAM_LINK_KINDS }).notNull(),
+    url: text('url').notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).default(nowMs).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.teamId, table.kind] }),
+    check('team_links_kind_check', sql`${table.kind} in ('report', 'slides', 'financials', 'comps', 'video')`),
+  ],
+);
+
+/** Wrong team join codes, for the limit of 10 per account per hour. */
+export const teamCodeAttempts = sqliteTable(
+  'team_code_attempts',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(nowMs).notNull(),
+  },
+  (table) => [index('team_code_attempts_userId_idx').on(table.userId)],
+);
+
+/** Every table, for Drizzle queries in src/db/accounts.ts and src/db/teams.ts. */
+export const appSchema = {
+  ...authSchema,
+  profiles,
+  mentorInvites,
+  clubCodeAttempts,
+  teams,
+  teamMembers,
+  teamLinks,
+  teamCodeAttempts,
+};
 export type AppSchema = typeof appSchema;
 export type Profile = typeof profiles.$inferSelect;
+export type Team = typeof teams.$inferSelect;

@@ -1,13 +1,7 @@
 /**
- * Runs the account queries against a real local D1 database: wrangler's
- * getPlatformProxy starts workerd with an in-memory copy (persist: false),
- * and every migration in drizzle/migrations is applied first.
+ * Runs the account queries against a real local D1 database (see testDb.ts).
  */
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
-import { getPlatformProxy } from 'wrangler';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   addMentor,
@@ -21,48 +15,26 @@ import {
   syncRole,
   type Db,
 } from './accounts';
-import { account, appSchema, clubCodeAttempts, mentorInvites, profiles, session, user } from './schema';
+import { account, clubCodeAttempts, mentorInvites, profiles, session, user } from './schema';
+import { resetDb, signUp as signUpIn, startTestDb, type TestDb } from './testDb';
 
-let proxy: Awaited<ReturnType<typeof getPlatformProxy<{ DB: D1Database }>>>;
+let testDb: TestDb;
 let db: Db;
 
 beforeAll(async () => {
-  proxy = await getPlatformProxy<{ DB: D1Database }>({ persist: false });
-  const dir = join(process.cwd(), 'drizzle/migrations');
-  for (const file of readdirSync(dir).filter((f) => f.endsWith('.sql')).sort()) {
-    for (const statement of readFileSync(join(dir, file), 'utf8').split('--> statement-breakpoint')) {
-      if (statement.trim()) await proxy.env.DB.prepare(statement).run();
-    }
-  }
-  db = drizzle(proxy.env.DB, { schema: appSchema });
+  testDb = await startTestDb();
+  db = testDb.db;
 }, 60_000);
 
 afterAll(async () => {
-  await proxy?.dispose();
+  await testDb?.dispose();
 });
 
 beforeEach(async () => {
-  await db.batch([
-    db.delete(clubCodeAttempts),
-    db.delete(profiles),
-    db.delete(session),
-    db.delete(account),
-    db.delete(user),
-    db.delete(mentorInvites),
-  ]);
+  await resetDb(db);
 });
 
-/** A user as Better Auth would create it after a Google sign-in, with a session. */
-async function signUp(id: string, email: string) {
-  await db.insert(user).values({ id, name: `Name ${id}`, email });
-  await db.insert(account).values({ id: `acct-${id}`, accountId: `g-${id}`, providerId: 'google', userId: id });
-  await db.insert(session).values({
-    id: `sess-${id}`,
-    token: `tok-${id}`,
-    userId: id,
-    expiresAt: new Date(Date.now() + 86_400_000),
-  });
-}
+const signUp = (id: string, email: string) => signUpIn(db, id, email);
 
 const ADMINS = ['officer@example.com'];
 

@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getDb } from '../db/client';
+import { getTeam, getTeamIdForUser } from '../db/teams';
 import { denied, requireProfile } from '../lib/guards';
 import { roleLabels } from '../lib/roles';
 import { buttonPrimary, buttonSecondary, card, eyebrow, fadeUp, focus } from '../lib/styles';
@@ -14,6 +16,22 @@ const access = user ? requireProfile(Astro.locals) : null;
 if (access && !access.ok) return denied(Astro, access);
 const profile = access?.ok ? access.profile : null;
 const deleted = Astro.url.searchParams.get('deleted') === '1';
+const left = Astro.url.searchParams.get('left');
+const leftMessage =
+  left === 'deleted'
+    ? 'You left the team. You were the last member, so the team and its links are deleted.'
+    : left === '1'
+      ? 'You left the team.'
+      : null;
+
+// Members (mentees) see their team, or buttons to create or join one.
+let team: { id: string; name: string; company: string | null; ticker: string | null } | null = null;
+if (user && profile?.role === 'mentee') {
+  const db = getDb();
+  const teamId = await getTeamIdForUser(db, user.id);
+  const view = teamId ? await getTeam(db, teamId) : null;
+  if (view) team = view.team;
+}
 const error = Astro.url.searchParams.get('error');
 const errorMessage =
   error === null
@@ -34,7 +52,7 @@ Astro.response.headers.set('Cache-Control', 'private, no-store');
     <p class="mt-5 text-lg leading-relaxed text-muted">
       {
         user
-          ? 'You are signed in. We keep only your name, the email you sign in with, and your grade.'
+          ? 'You are signed in. We keep only your name, the email you sign in with, your grade, and your team and its file links.'
           : 'Sign in with your Google account. We keep only your name, email and grade.'
       }{' '}
       <a href="/privacy" class:list={['font-bold', focus]}>Privacy</a>
@@ -58,52 +76,92 @@ Astro.response.headers.set('Cache-Control', 'private, no-store');
 
     {
       user && profile ? (
-        <section aria-labelledby="signed-in" class:list={['mt-8', card]}>
-          <h2 id="signed-in" class="text-3xl font-extrabold">
-            Signed in
-          </h2>
-          <dl class="mt-4 space-y-3">
-            <div>
-              <dt class="text-sm font-bold text-muted">Name</dt>
-              <dd class="break-words text-lg">{profile.name}</dd>
+        <>
+          <section aria-labelledby="signed-in" class:list={['mt-8', card]}>
+            <h2 id="signed-in" class="text-3xl font-extrabold">
+              Signed in
+            </h2>
+            <dl class="mt-4 space-y-3">
+              <div>
+                <dt class="text-sm font-bold text-muted">Name</dt>
+                <dd class="break-words text-lg">{profile.name}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-bold text-muted">Email</dt>
+                <dd class="break-words text-lg">{user.email}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-bold text-muted">Grade</dt>
+                <dd class="text-lg">{profile.grade}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-bold text-muted">Role</dt>
+                <dd class="text-lg">{roleLabels[profile.role]}</dd>
+              </div>
+            </dl>
+            <div class="mt-6 flex flex-wrap items-center gap-4">
+              <form method="post" action="/account/sign-out">
+                <button type="submit" class:list={[buttonSecondary, focus, 'cursor-pointer']}>
+                  Sign out
+                </button>
+              </form>
+              {profile.role === 'admin' && (
+                <a href="/admin/mentors" class:list={['font-bold', focus]}>
+                  Manage mentors
+                </a>
+              )}
             </div>
-            <div>
-              <dt class="text-sm font-bold text-muted">Email</dt>
-              <dd class="break-words text-lg">{user.email}</dd>
-            </div>
-            <div>
-              <dt class="text-sm font-bold text-muted">Grade</dt>
-              <dd class="text-lg">{profile.grade}</dd>
-            </div>
-            <div>
-              <dt class="text-sm font-bold text-muted">Role</dt>
-              <dd class="text-lg">{roleLabels[profile.role]}</dd>
-            </div>
-          </dl>
-          <div class="mt-6 flex flex-wrap items-center gap-4">
-            <form method="post" action="/account/sign-out">
-              <button type="submit" class:list={[buttonSecondary, focus, 'cursor-pointer']}>
-                Sign out
-              </button>
-            </form>
-            {profile.role === 'admin' && (
-              <a href="/admin/mentors" class:list={['font-bold', focus]}>
-                Manage mentors
-              </a>
-            )}
-          </div>
-        </section>
-        <section aria-labelledby="delete-heading" class="mt-10">
-          <h2 id="delete-heading" class="text-2xl font-extrabold">
-            Delete my account
-          </h2>
-          <p class="mt-2 text-muted">
-            Removes your name, grade and sign-in records from this site. You'll be asked to confirm.
-          </p>
-          <a href="/account/delete" class:list={['mt-4', buttonSecondary, focus]}>
-            Delete my account
-          </a>
-        </section>
+          </section>
+          {profile.role === 'mentee' && (
+            <section aria-labelledby="team-heading" class:list={['mt-8', card]}>
+              <h2 id="team-heading" class="text-3xl font-extrabold">
+                Your team
+              </h2>
+              {leftMessage && (
+                <p role="status" class="mt-4 rounded-md bg-tint p-4 font-bold">
+                  {leftMessage}
+                </p>
+              )}
+              {team ? (
+                <>
+                  <p class="mt-3 break-words text-2xl font-bold">{team.name}</p>
+                  <p class="mt-1 break-words text-muted">
+                    {team.company
+                      ? `${team.company}${team.ticker ? ` (${team.ticker})` : ''}`
+                      : 'No company chosen yet'}
+                  </p>
+                  <a href={`/team/${team.id}`} class:list={['mt-6', buttonPrimary, focus]}>
+                    Go to your team
+                  </a>
+                </>
+              ) : (
+                <>
+                  <p class="mt-3">You're not on a team yet.</p>
+                  <div class="mt-6 flex flex-wrap items-center gap-4">
+                    <a href="/team/new" class:list={[buttonPrimary, focus]}>
+                      Create a team (or compete solo)
+                    </a>
+                    <a href="/team/join" class:list={[buttonSecondary, focus]}>
+                      Join with a code
+                    </a>
+                  </div>
+                </>
+              )}
+            </section>
+          )}
+          <section aria-labelledby="delete-heading" class="mt-10">
+            <h2 id="delete-heading" class="text-2xl font-extrabold">
+              Delete my account
+            </h2>
+            <p class="mt-2 text-muted">
+              Removes your name, grade, team membership and sign-in records from this site. You'll be asked
+              to confirm.
+            </p>
+            <a href="/account/delete" class:list={['mt-4', buttonSecondary, focus]}>
+              Delete my account
+            </a>
+          </section>
+        </>
       ) : (
         <>
           <p class="mt-8 rounded-md bg-tint p-4">

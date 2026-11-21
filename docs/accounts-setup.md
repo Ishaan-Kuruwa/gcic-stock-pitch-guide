@@ -2,8 +2,8 @@
 
 **Phase A** (steps 1–6) sets up Google sign-in: a Google OAuth client, the D1
 database, and three secrets. **Phase B** (steps 7–10) adds roles, the club
-code, the mentor list and the privacy page. Do the steps in order. Each one
-says what to click and what to paste.
+code, the mentor list and the privacy page. **Phase C** (step 11) adds teams.
+Do the steps in order. Each one says what to click and what to paste.
 
 Values used below:
 
@@ -326,6 +326,48 @@ Do these in order. Don't share the site with members until all are done.
    for one anyway, follow its steps (the app keeps working for test users meanwhile). After
    this, anyone with a personal Google account can sign in, and the club code
    keeps non-members out of the account pages.
+
+---
+
+# Phase C: teams
+
+## 11. Apply the team tables
+
+Before merging the Phase C PR, add the new tables to both databases:
+
+```sh
+npm run db:migrate:local
+npm run db:migrate:remote
+```
+
+You should see `0002_teams.sql ✅`.
+
+## How teams work
+
+- **Who can have a team:** members (mentees) only. Mentors and admins can't
+  create or join one. Officers who also compete track their own teams outside the site.
+- **Size:** at most 2 students, from `limits.maxTeamSize` in
+  `src/data/competition.ts` (YIS allows individuals or pairs). A student
+  competing alone is a team of one.
+- **One team each.** A student must leave their team before creating or
+  joining another.
+- **Creating:** `/account` → **Create a team (or compete solo)**. The team gets a
+  6-character join code (no 0/O or 1/I/L, so it's easy to read out loud).
+- **Joining:** `/account` → **Join with a code**. Capital letters don't matter.
+  10 wrong codes in an hour locks that account out of joining for the rest of
+  the hour. A full team says so and isn't counted as a wrong code.
+- **New join code:** if a code is shared too widely, any member can click
+  **New join code** on the team page. The old code stops working right away.
+- **Company and file links:** members add their company, ticker and links to
+  their own files (report, slides, financials, comps, video). Links must be
+  `https://` on docs.google.com, drive.google.com, youtube.com or youtu.be.
+  The site stores the link, never the file.
+- **Who can see a team page:** its members and admins. Anyone else gets "Page
+  not found", so team pages can't be guessed. Admins can look but can't change
+  anything. Mentors get access in a later phase.
+- **Leaving:** **Leave team** on the team page, with a confirm step. When the
+  last member leaves, the team and its links are deleted. Deleting an account
+  does the same.
 
 ---
 

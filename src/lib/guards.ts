@@ -45,6 +45,28 @@ export function requireRole(locals: GuardLocals, role: Extract<Role, 'mentor' | 
   return access;
 }
 
+/** Finished profile and the mentee role (members only: teams are for students). */
+export function requireMentee(locals: GuardLocals): ProfileAccess {
+  const access = requireProfile(locals);
+  if (!access.ok) return access;
+  if (access.profile.role !== 'mentee') return { ok: false, reason: 'forbidden' };
+  return access;
+}
+
+/**
+ * Who may open a team page: its members and admins. Everyone else gets the
+ * same answer as for a team that doesn't exist, so team ids aren't confirmed.
+ * (Mentors get access in a later phase.)
+ */
+export function teamViewAccess(
+  profile: Pick<Profile, 'userId' | 'role'>,
+  memberUserIds: readonly string[],
+): 'ok' | 'notfound' {
+  if (memberUserIds.includes(profile.userId)) return 'ok';
+  if (profile.role === 'admin') return 'ok';
+  return 'notfound';
+}
+
 /** Where each denial goes. Forbidden is answered in place with a 403 page. */
 export const deniedRedirects = { signin: '/account', join: '/join' } as const;
 

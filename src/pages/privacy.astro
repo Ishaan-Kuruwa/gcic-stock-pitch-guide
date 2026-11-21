@@ -25,9 +25,10 @@ import { eyebrow, fadeUp } from '../lib/styles';
           <li>Your name.</li>
           <li>The Google email you sign in with.</li>
           <li>Your grade.</li>
+          <li>If you're on a team: the team name, your company and its ticker, and who is on the team.</li>
           <li>
-            Later in the season: your team, your progress, and links to your own files (we store the
-            link, not what's in the file).
+            Links your team adds to its own Google Docs, Drive or YouTube files. We store the link,
+            never what's in the file.
           </li>
         </ul>
       </section>
@@ -47,10 +48,16 @@ import { eyebrow, fadeUp } from '../lib/styles';
         <h2 id="who-can-see" class="text-3xl font-extrabold">Who can see it</h2>
         <ul class="mt-3 list-disc space-y-1 pl-6">
           <li>You.</li>
-          <li>Your teammates.</li>
-          <li>Your mentor.</li>
+          <li>
+            Your teammates: your first name and grade, and your team's name, company, ticker and file
+            links.
+          </li>
           <li>The club officers who run this site.</li>
         </ul>
+        <p class="mt-3">
+          Mentors can't see teams yet. That is added in a later phase, and this page will say what
+          they can see before it happens.
+        </p>
         <p class="mt-3">Nobody else. The site has no ads and no tracking.</p>
       </section>
 
@@ -58,8 +65,13 @@ import { eyebrow, fadeUp } from '../lib/styles';
         <h2 id="delete" class="text-3xl font-extrabold">How to delete your account</h2>
         <p class="mt-3">
           Sign in, go to <a href="/account">your account</a>, and choose <strong>Delete my account</strong>.
-          After you confirm, your name, email, grade and sign-in records are deleted right away and
-          you are signed out.
+          After you confirm, your name, email, grade and sign-in records are deleted right away, you
+          are taken off your team, and you are signed out. If you were the only member, the team and
+          its links are deleted too.
+        </p>
+        <p class="mt-3">
+          To leave a team without deleting your account, open your team page and choose{' '}
+          <strong>Leave team</strong>. The last member to leave deletes the team and its links.
         </p>
       </section>
 

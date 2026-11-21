@@ -14,10 +14,13 @@ import {
   mentorInvites,
   profiles,
   session,
+  teamCodeAttempts,
+  teams,
   user,
   type Profile,
   type Role,
 } from './schema';
+import { getTeamIdForUser, removeMemberStatements } from './teams';
 
 export type Db = DrizzleD1Database<typeof appSchema>;
 
@@ -117,11 +120,17 @@ export async function removeMentor(db: Db, email: string): Promise<void> {
 }
 
 /**
- * Delete everything stored about a user: club-code tries, profile, sessions,
- * Google account link and the user row. One batch, so it all goes or none.
+ * Delete everything stored about a user: their team membership (and their
+ * team, with its links, if they were the last member), join-code and
+ * club-code tries, profile, sessions, Google account link and the user row.
+ * One batch, so it all goes or none.
  */
 export async function deleteAccount(db: Db, userId: string): Promise<void> {
+  const teamId = await getTeamIdForUser(db, userId);
   await db.batch([
+    db.update(teams).set({ mentorId: null }).where(eq(teams.mentorId, userId)),
+    ...(teamId ? removeMemberStatements(db, userId, teamId) : []),
+    db.delete(teamCodeAttempts).where(eq(teamCodeAttempts.userId, userId)),
     db.delete(clubCodeAttempts).where(eq(clubCodeAttempts.userId, userId)),
     db.delete(profiles).where(eq(profiles.userId, userId)),
     db.delete(session).where(eq(session.userId, userId)),
