@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deadline, limits, requiredItems, rubricTotalPoints } from '../data/competition';
+import { deadline, limits, requiredItems, rubricTotalPoints, teams } from '../data/competition';
 import { categoryPoints, deadlineEastern, formatInstant, formatUsd } from './facts';
 
 describe('formatUsd', () => {
@@ -35,6 +35,11 @@ describe('limits', () => {
     const constraints = requiredItems.flatMap((item) => [...item.constraints]);
     expect(constraints).toContain(`Max ${limits.reportMaxPages} pages plus an appendix of any length.`);
     expect(constraints).toContain(`Under ${limits.videoMaxMinutes} minutes.`);
-    expect(limits).toEqual({ reportMaxPages: 10, videoMaxMinutes: 10 });
+    expect(limits).toEqual({ reportMaxPages: 10, videoMaxMinutes: 10, maxTeamSize: 2 });
+  });
+
+  it('max team size matches "Individual or pairs"', () => {
+    expect(teams).toBe('Individual or pairs');
+    expect(limits.maxTeamSize).toBe(2);
   });
 });

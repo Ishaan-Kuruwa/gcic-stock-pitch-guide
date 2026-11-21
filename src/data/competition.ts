@@ -125,6 +125,8 @@ export const teams = 'Individual or pairs' as const;
 export const limits = {
   reportMaxPages: 10,
   videoMaxMinutes: 10,
+  /** Most students on one team. From `teams` above: "Individual or pairs". */
+  maxTeamSize: 2,
 } as const;
 
 export const requiredItems = [

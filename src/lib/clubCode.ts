@@ -1,6 +1,7 @@
 /**
  * The club code keeps non-members out of the sign-up step at /join. It is a
- * Wrangler secret (CLUB_CODE). Wrong tries are limited per account.
+ * Wrangler secret (CLUB_CODE). Wrong tries are limited per account. The
+ * window helpers are shared with team join codes (src/lib/teams.ts).
  */
 
 /** Wrong tries allowed per account inside one window. */
@@ -21,25 +22,28 @@ export function triesInWindow(attempts: Date[], now: Date): Date[] {
   return attempts.filter((t) => t.getTime() > since && t.getTime() <= now.getTime());
 }
 
-/** True once there are MAX_TRIES wrong tries inside the last hour. */
-export function isLockedOut(attempts: Date[], now: Date): boolean {
-  return triesInWindow(attempts, now).length >= MAX_TRIES;
+/**
+ * True once there are `max` wrong tries inside the last hour. `max` defaults
+ * to the club-code limit; team join codes pass their own.
+ */
+export function isLockedOut(attempts: Date[], now: Date, max = MAX_TRIES): boolean {
+  return triesInWindow(attempts, now).length >= max;
 }
 
 /** Wrong tries left before the lockout. Never below 0. */
-export function triesLeft(attempts: Date[], now: Date): number {
-  return Math.max(0, MAX_TRIES - triesInWindow(attempts, now).length);
+export function triesLeft(attempts: Date[], now: Date, max = MAX_TRIES): number {
+  return Math.max(0, max - triesInWindow(attempts, now).length);
 }
 
 /**
  * Whole minutes (at least 1) until one more try is allowed, or 0 if one is
  * allowed now. The oldest counted try has to slide out of the hour first.
  */
-export function minutesUntilRetry(attempts: Date[], now: Date): number {
+export function minutesUntilRetry(attempts: Date[], now: Date, max = MAX_TRIES): number {
   const counted = triesInWindow(attempts, now)
     .map((t) => t.getTime())
     .sort((a, b) => a - b);
-  if (counted.length < MAX_TRIES) return 0;
-  const freesAt = counted[counted.length - MAX_TRIES]! + WINDOW_MS;
+  if (counted.length < max) return 0;
+  const freesAt = counted[counted.length - max]! + WINDOW_MS;
   return Math.max(1, Math.ceil((freesAt - now.getTime()) / 60_000));
 }

@@ -1,0 +1,345 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CopyButton from '../../../components/CopyButton';
+import GlossaryTerm from '../../../components/GlossaryTerm.astro';
+import NotFound from '../../../components/NotFound.astro';
+import { claimBoardUrl } from '../../../data/club';
+import { limits } from '../../../data/competition';
+import { getDb } from '../../../db/client';
+import { getTeam, regenerateJoinCode, setTeamLinks, updateTeamDetails } from '../../../db/teams';
+import { denied, requireProfile, teamViewAccess } from '../../../lib/guards';
+import { crossSiteResponse, isSameOrigin } from '../../../lib/origin';
+import { firstName } from '../../../lib/profile';
+import {
+  LINK_RULE,
+  MAX_COMPANY,
+  MAX_LINK_LENGTH,
+  MAX_TICKER,
+  mentorshipLabels,
+  parseDetailsForm,
+  parseLinksForm,
+  TEAM_LINK_KINDS,
+  teamLinkLabels,
+  type DetailsErrors,
+  type TeamLinkKind,
+} from '../../../lib/teams';
+import { buttonPrimary, buttonSecondary, card, eyebrow, fadeUp, focus, input } from '../../../lib/styles';
+
+export const prerender = false;
+
+// Signed out or unfinished profile: the usual redirects (they say nothing
+// about whether this team exists).
+const access = requireProfile(Astro.locals);
+if (!access.ok) return denied(Astro, access);
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+
+const db = getDb();
+const teamId = Astro.params.id ?? '';
+let view = await getTeam(db, teamId);
+const memberIds = view?.members.map((m) => m.userId) ?? [];
+// Not a member (and not an admin), or no such team: the same 404 either way.
+const visible = view !== null && teamViewAccess(access.profile, memberIds) === 'ok';
+const isMember = memberIds.includes(access.user.id);
+
+let detailsErrors: DetailsErrors = {};
+let detailsValues = { company: view?.team.company ?? '', ticker: view?.team.ticker ?? '' };
+let linkErrors: Partial<Record<TeamLinkKind, string>> = {};
+let linkValues: Record<TeamLinkKind, string> = Object.fromEntries(
+  TEAM_LINK_KINDS.map((k) => [k, view?.links[k] ?? '']),
+) as Record<TeamLinkKind, string>;
+
+if (!visible) {
+  Astro.response.status = 404;
+} else if (Astro.request.method === 'POST') {
+  if (!isSameOrigin(Astro.request)) return crossSiteResponse();
+  // Admins can look but not change anything in this phase.
+  if (!isMember) return Astro.redirect(`/team/${teamId}`, 303);
+  const form = await Astro.request.formData();
+  const action = form.get('action');
+  if (action === 'details') {
+    const parsed = parseDetailsForm(form);
+    if (parsed.ok) {
+      await updateTeamDetails(db, teamId, parsed.value);
+      return Astro.redirect(`/team/${teamId}?status=details#company`, 303);
+    }
+    detailsErrors = parsed.errors;
+    detailsValues = { company: String(form.get('company') ?? ''), ticker: String(form.get('ticker') ?? '') };
+  } else if (action === 'links') {
+    const parsed = parseLinksForm(form);
+    if (parsed.ok) {
+      await setTeamLinks(db, teamId, parsed.value);
+      return Astro.redirect(`/team/${teamId}?status=links#files`, 303);
+    }
+    linkErrors = parsed.errors;
+    linkValues = parsed.values;
+  } else if (action === 'new-code') {
+    await regenerateJoinCode(db, teamId);
+    return Astro.redirect(`/team/${teamId}?status=code#join-code`, 303);
+  }
+  view = await getTeam(db, teamId);
+}
+
+const status = Astro.url.searchParams.get('status');
+const statusMessages: Record<string, string> = {
+  details: 'Saved your company and ticker.',
+  links: 'Saved your links.',
+  code: 'Made a new join code. The old code no longer works.',
+};
+const statusMessage = status ? (statusMessages[status] ?? null) : null;
+const detailsErrorList = Object.values(detailsErrors);
+const linkErrorList = Object.values(linkErrors);
+const savedLinks = TEAM_LINK_KINDS.filter((k) => view?.links[k]);
+const team = view?.team;
+const members = view?.members ?? [];
+const full = members.length >= limits.maxTeamSize;
+---
+
+{
+  !visible || !team ? (
+    <NotFound noindex />
+  ) : (
+    <BaseLayout title={team.name} description="Your GHIC stock pitch team." noindex>
+      <div class:list={['max-w-prose', fadeUp]}>
+        <p class={eyebrow}>Team</p>
+        <h1 class="mt-2 break-words text-5xl font-black sm:text-6xl">{team.name}</h1>
+        <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight" />
+        <p class="mt-5 text-lg leading-relaxed text-muted">
+          {isMember
+            ? 'Your team: who is on it, your company, and links to your own files.'
+            : 'You are viewing this team as a club officer. Only members can change it.'}
+        </p>
+
+        {statusMessage && (
+          <p role="status" class="mt-6 rounded-md bg-tint p-4 font-bold">
+            {statusMessage}
+          </p>
+        )}
+
+        <section aria-labelledby="members" class:list={['mt-8', card]}>
+          <h2 id="members" class="text-3xl font-extrabold">
+            Members
+          </h2>
+          <ul class="mt-4 space-y-2 text-lg">
+            {members.map((m) => (
+              <li class="break-words">
+                {m.name ? firstName(m.name) : 'Member'}
+                {m.grade !== null && <span class="text-muted">, grade {m.grade}</span>}
+                {m.userId === access.user.id && <span class="text-muted"> (you)</span>}
+              </li>
+            ))}
+          </ul>
+          <p class="mt-4">
+            {members.length === 1
+              ? `Competing solo, or share the join code to add a partner (max ${limits.maxTeamSize}).`
+              : full
+                ? `Your team is full (max ${limits.maxTeamSize}).`
+                : `Share the join code to add a teammate (max ${limits.maxTeamSize}).`}
+          </p>
+
+          <h3 id="join-code" class="mt-6 text-2xl font-extrabold">
+            Join code
+          </h3>
+          <div class="mt-2 flex flex-wrap items-center gap-4">
+            <code class="rounded-md bg-tint px-3 py-2 font-mono text-2xl font-bold tracking-widest select-all">
+              {team.joinCode}
+            </code>
+            <CopyButton client:visible text={team.joinCode} label="join code" />
+          </div>
+          <p class="mt-2 text-sm text-muted">
+            Capital letters don't matter when someone types it in at /team/join.
+          </p>
+          {isMember && (
+            <form method="post" class="mt-4">
+              <input type="hidden" name="action" value="new-code" />
+              <p class="text-sm text-muted">Shared the code too widely? Make a new one. The old code stops working.</p>
+              <button type="submit" class:list={['mt-2', buttonSecondary, focus, 'cursor-pointer py-2']}>
+                New join code
+              </button>
+            </form>
+          )}
+        </section>
+
+        <section id="company" aria-labelledby="company-heading" class:list={['mt-8', card]}>
+          <h2 id="company-heading" class="text-3xl font-extrabold">
+            Company
+          </h2>
+          <p class="mt-3">
+            Claim your company on the{' '}
+            <a href={claimBoardUrl} class:list={['font-bold', focus]}>
+              claim board
+            </a>{' '}
+            so two teams don't pick the same one.
+          </p>
+          {isMember ? (
+            <>
+              {detailsErrorList.length > 0 && (
+                <div role="alert" class="mt-4 rounded-md border-2 border-danger p-4 text-danger">
+                  <p class="font-bold">Please fix this:</p>
+                  <ul class="mt-2 list-disc pl-5">
+                    {detailsErrorList.map((e) => (
+                      <li>{e}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <form method="post" class="mt-4 space-y-4" novalidate>
+                <input type="hidden" name="action" value="details" />
+                <div>
+                  <label for="team-company" class="block text-lg font-bold">
+                    Company name
+                  </label>
+                  <input
+                    id="team-company"
+                    name="company"
+                    type="text"
+                    autocomplete="off"
+                    maxlength={MAX_COMPANY}
+                    value={detailsValues.company}
+                    aria-invalid={detailsErrors.company ? 'true' : undefined}
+                    class:list={['mt-1', input]}
+                  />
+                </div>
+                <div>
+                  <label for="team-ticker" class="block text-lg font-bold">
+                    Ticker
+                  </label>
+                  <p id="team-ticker-hint" class="text-sm text-muted">
+                    The company's <GlossaryTerm id="ticker">ticker</GlossaryTerm>, like AAPL or BRK.B. Letters and
+                    dots only.
+                  </p>
+                  <input
+                    id="team-ticker"
+                    name="ticker"
+                    type="text"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    spellcheck="false"
+                    maxlength={MAX_TICKER}
+                    value={detailsValues.ticker}
+                    aria-invalid={detailsErrors.ticker ? 'true' : undefined}
+                    aria-describedby="team-ticker-hint"
+                    class:list={['mt-1 uppercase', input]}
+                  />
+                </div>
+                <button type="submit" class:list={[buttonPrimary, focus, 'cursor-pointer']}>
+                  Save company
+                </button>
+              </form>
+            </>
+          ) : (
+            <dl class="mt-4 space-y-3">
+              <div>
+                <dt class="text-sm font-bold text-muted">Company name</dt>
+                <dd class="break-words text-lg">{team.company ?? 'Not chosen yet'}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-bold text-muted">Ticker</dt>
+                <dd class="text-lg">{team.ticker ?? 'Not chosen yet'}</dd>
+              </div>
+            </dl>
+          )}
+        </section>
+
+        <section id="files" aria-labelledby="files-heading" class:list={['mt-8', card]}>
+          <h2 id="files-heading" class="text-3xl font-extrabold">
+            Your files
+          </h2>
+          <p class="mt-3">
+            Links to your team's own files, so they're easy to find. This site stores only the link, never what's in
+            the file.
+          </p>
+          {savedLinks.length > 0 ? (
+            <ul class="mt-4 space-y-2 text-lg">
+              {savedLinks.map((kind) => (
+                <li>
+                  <a
+                    href={view!.links[kind]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class:list={['font-bold', focus]}
+                  >
+                    {teamLinkLabels[kind]}
+                    <span class="sr-only"> (opens in a new tab)</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p class="mt-4 text-muted">No links yet.</p>
+          )}
+
+          {isMember && (
+            <>
+              <h3 class="mt-6 text-2xl font-extrabold">Add or change links</h3>
+              <p id="link-rule" class="mt-2">
+                {LINK_RULE} Leave a box empty to remove that link.{' '}
+                <GlossaryTerm id="comparable-companies">Comps</GlossaryTerm> is your comparable companies sheet.
+              </p>
+              {linkErrorList.length > 0 && (
+                <div role="alert" class="mt-4 rounded-md border-2 border-danger p-4 text-danger">
+                  <p class="font-bold">Please fix this:</p>
+                  <ul class="mt-2 list-disc pl-5">
+                    {linkErrorList.map((e) => (
+                      <li class="break-words">{e}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <form method="post" class="mt-4 space-y-4" novalidate>
+                <input type="hidden" name="action" value="links" />
+                {TEAM_LINK_KINDS.map((kind) => (
+                  <div>
+                    <label for={`link-${kind}`} class="block text-lg font-bold">
+                      {teamLinkLabels[kind]}
+                    </label>
+                    <input
+                      id={`link-${kind}`}
+                      name={`link-${kind}`}
+                      type="url"
+                      inputmode="url"
+                      autocomplete="off"
+                      spellcheck="false"
+                      placeholder="https://"
+                      maxlength={MAX_LINK_LENGTH}
+                      value={linkValues[kind]}
+                      aria-invalid={linkErrors[kind] ? 'true' : undefined}
+                      aria-describedby="link-rule"
+                      class:list={['mt-1', input]}
+                    />
+                  </div>
+                ))}
+                <button type="submit" class:list={[buttonPrimary, focus, 'cursor-pointer']}>
+                  Save links
+                </button>
+              </form>
+            </>
+          )}
+        </section>
+
+        <section aria-labelledby="mentorship" class:list={['mt-8', card]}>
+          <h2 id="mentorship" class="text-3xl font-extrabold">
+            Mentorship
+          </h2>
+          <p class="mt-3 text-lg">{mentorshipLabels[team.mentorshipStatus]}</p>
+        </section>
+
+        {isMember && (
+          <section aria-labelledby="leave" class="mt-10">
+            <h2 id="leave" class="text-2xl font-extrabold">
+              Leave team
+            </h2>
+            <p class="mt-2 text-muted">
+              {members.length === 1
+                ? "You're the only member, so leaving deletes the team and its links. You'll be asked to confirm."
+                : "Your teammate keeps the team. You'll be asked to confirm."}
+            </p>
+            <a href={`/team/${team.id}/leave`} class:list={['mt-4', buttonSecondary, focus]}>
+              Leave team
+            </a>
+          </section>
+        )}
+      </div>
+    </BaseLayout>
+  )
+}

@@ -1,0 +1,100 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getDb } from '../../db/client';
+import { createTeam, getTeamIdForUser } from '../../db/teams';
+import { denied, requireMentee } from '../../lib/guards';
+import { crossSiteResponse, isSameOrigin } from '../../lib/origin';
+import { MAX_TEAM_NAME, parseTeamName } from '../../lib/teams';
+import { buttonPrimary, buttonSecondary, card, eyebrow, fadeUp, focus, input } from '../../lib/styles';
+
+export const prerender = false;
+
+// Teams are for members (mentees); mentors and admins get a 403.
+const access = requireMentee(Astro.locals);
+if (!access.ok) return denied(Astro, access);
+
+const db = getDb();
+let currentTeamId = await getTeamIdForUser(db, access.user.id);
+let name = '';
+let error: string | null = null;
+
+if (Astro.request.method === 'POST' && !currentTeamId) {
+  if (!isSameOrigin(Astro.request)) return crossSiteResponse();
+  const form = await Astro.request.formData();
+  const raw = form.get('name');
+  name = typeof raw === 'string' ? raw : '';
+  const parsed = parseTeamName(name);
+  if (!parsed.ok) {
+    error = parsed.error;
+  } else {
+    const result = await createTeam(db, access.user.id, parsed.value);
+    if (result.ok) return Astro.redirect(`/team/${result.teamId}`, 303);
+    currentTeamId = await getTeamIdForUser(db, access.user.id);
+  }
+}
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+---
+
+<BaseLayout title="Create a team" description="Create a GHIC stock pitch team." noindex>
+  <div class:list={['max-w-prose', fadeUp]}>
+    <p class={eyebrow}>Team</p>
+    <h1 class="mt-2 text-5xl font-black sm:text-6xl">Create a team</h1>
+    <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight"></div>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      Pick a team name. You'll get a join code to give your partner.
+    </p>
+
+    {
+      currentTeamId ? (
+        <section aria-labelledby="already" class:list={['mt-8', card]}>
+          <h2 id="already" class="text-3xl font-extrabold">
+            You're already on a team
+          </h2>
+          <p class="mt-3">You can be on one team at a time. To start a new one, leave your team first.</p>
+          <a href={`/team/${currentTeamId}`} class:list={['mt-6', buttonPrimary, focus]}>
+            Go to your team
+          </a>
+        </section>
+      ) : (
+        <>
+          {error && (
+            <p role="alert" class="mt-6 rounded-md border-2 border-danger p-4 font-bold text-danger">
+              Error: {error}
+            </p>
+          )}
+          <form method="post" class:list={['mt-8 space-y-6', card]} novalidate>
+            <div>
+              <label for="team-name" class="block text-lg font-bold">
+                Team name
+              </label>
+              <p id="team-name-hint" class="text-sm text-muted">
+                Up to {MAX_TEAM_NAME} characters. Competing alone? Create a team and don't share the code.
+              </p>
+              <input
+                id="team-name"
+                name="name"
+                type="text"
+                autocomplete="off"
+                required
+                maxlength={MAX_TEAM_NAME}
+                value={name}
+                aria-invalid={error ? 'true' : undefined}
+                aria-describedby="team-name-hint"
+                class:list={['mt-1', input]}
+              />
+            </div>
+            <div class="flex flex-wrap items-center gap-4">
+              <button type="submit" class:list={[buttonPrimary, focus, 'cursor-pointer']}>
+                Create team
+              </button>
+              <a href="/team/join" class:list={[buttonSecondary, focus]}>
+                Join with a code instead
+              </a>
+            </div>
+          </form>
+        </>
+      )
+    }
+  </div>
+</BaseLayout>
