@@ -59,7 +59,7 @@ async function save(
   now = new Date(),
 ) {
   const current = new Set((await getTeamMilestones(db, teamId)).keys());
-  await saveTeamMilestones(db, teamId, userId, planMilestoneSave(current, shown, checked, status), now);
+  await saveTeamMilestones(db, teamId, userId, planMilestoneSave(current, shown, checked, status, { member: true, mentor: false }), now);
 }
 
 const keys = async (teamId: string) => [...(await getTeamMilestones(db, teamId)).keys()].sort();

@@ -5,6 +5,7 @@ import { isCurrentPath } from '../lib/nav';
 import { officialLinks } from '../data/competition';
 import { focus } from '../lib/styles';
 import { firstName, isProfileComplete } from '../lib/profile';
+import { accountHrefFor } from '../lib/navHint';
 
 interface Props {
   title: string;
@@ -39,14 +40,14 @@ const { user, profile } = Astro.locals;
 const accountLink =
   user && profile && profile.name && isProfileComplete(profile)
     ? {
-        href: profile.role === 'admin' ? '/admin/mentors' : '/account',
+        href: accountHrefFor(profile.role),
         label: firstName(profile.name),
         hint: false,
       }
     : user
       ? { href: '/join', label: 'Finish sign-up', hint: false }
       : { href: '/account', label: 'Sign in', hint: true };
-const accountCurrent = ['/account', '/join', '/admin'].some((href) => isCurrentPath(currentPath, href));
+const accountCurrent = ['/account', '/join', '/admin', '/mentor'].some((href) => isCurrentPath(currentPath, href));
 const guidelines = officialLinks.find((link) => link.id === 'guidelines')!;
 ---
 

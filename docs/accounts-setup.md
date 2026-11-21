@@ -4,7 +4,8 @@
 database, and three secrets. **Phase B** (steps 7–10) adds roles, the club
 code, the mentor list and the privacy page. **Phase C** (step 11) adds teams.
 **Phase D** (step 12) saves module progress to accounts and adds team
-milestones. Do the steps in order. Each one says what to click and what to paste.
+milestones. **Phase E** (step 13) adds mentors for teams and check-ins. Do the
+steps in order. Each one says what to click and what to paste.
 
 Values used below:
 
@@ -297,14 +298,16 @@ with the full new list. It applies at that person's next sign-in.
 ## 9. Add mentors
 
 1. Sign in with an admin account. The header link (your first name) goes to
-   **Mentors** (`/admin/mentors`).
+   **All teams** (`/admin/teams`); click **Manage mentors** there to get to
+   `/admin/mentors`.
 2. Under **Add a mentor**, type the mentor's Google email and click **Add mentor**.
 3. Tell the mentor to sign in. They pick their grade at `/join` and skip the
    club code.
 
 To remove a mentor, click **Remove** next to their email. If they already have
 an account, they become a member right away and must enter the club code
-before they can continue.
+before they can continue. Teams they mentored have no mentor from then on (see
+Phase E below).
 
 ## 10. Before students sign up
 
@@ -365,7 +368,8 @@ You should see `0002_teams.sql ✅`.
   The site stores the link, never the file.
 - **Who can see a team page:** its members and admins. Anyone else gets "Page
   not found", so team pages can't be guessed. Admins can look but can't change
-  anything. Mentors get access in a later phase.
+  the team. Since Phase E, a team's assigned mentor can see it too (see "How
+  mentoring works on the site").
 - **Leaving:** **Leave team** on the team page, with a confirm step. When the
   last member leaves, the team and its links are deleted. Deleting an account
   does the same.
@@ -419,7 +423,7 @@ home page):
   you changed, so it can't undo a teammate's tick made while your page was open.
 - **Mentor reviewed the draft** only shows for teams whose mentorship status is
   "Has a mentor". Even then, members can't tick it ("Your mentor marks this");
-  mentors get that in a later phase.
+  only the team's assigned mentor can.
 - Admins see the milestones read-only.
 
 **To change a due date**, edit `milestones` in `src/data/club.ts` (dates are
@@ -432,6 +436,91 @@ under the old key stop showing.
 belong to the team: they stay when one member leaves or deletes their account
 (without that person's name attached), and are deleted with the team when the
 last member leaves.
+
+---
+
+# Phase E: mentoring
+
+## 13. Apply the check-ins table
+
+Before merging the Phase E PR, add the new table to both databases:
+
+```sh
+npm run db:migrate:local
+npm run db:migrate:remote
+```
+
+You should see `0004_checkins.sql ✅`. No new secrets.
+
+Then paste the mentor application Google Form link into `mentorship.applicationUrl`
+in `src/data/club.ts` (it's `null` until you do). The same block has the closing
+day (`closes: '2026-12-08'`) and how often mentors should meet
+(`checkinEveryDays: 14`).
+
+## How mentoring works on the site
+
+Applications stay on the club's Google Form this season. The site doesn't
+collect them; it links to the form and keeps track of who mentors whom.
+
+**Before the form closes.** Self-guided teams see "Want a mentor? Apply with the
+club form by Dec 8" in the Mentorship section of their team page. It shows only
+once `applicationUrl` is set, and disappears after the closing day (New York
+time).
+
+**After the form is scored, assign each team:**
+
+1. Make sure the mentor is on the list at `/admin/mentors` and has signed in
+   once (they appear in the mentor list only after that). Admins can mentor
+   too: they're always in the list.
+2. Open **All teams** (`/admin/teams`, the header link for admins) and click
+   the team's name.
+3. Under **Set mentorship**, pick a status:
+   - **Applied for a mentor**: they applied and you haven't decided yet.
+   - **Has a mentor**: pick their mentor too. This status needs a mentor.
+   - **Mentor request declined**, or back to **Self-guided**: choose "No
+     mentor".
+4. Click **Save mentorship**. To change a team's mentor later, pick someone
+   else and save. Past check-ins stay on the team, under the old mentor's name.
+
+**What a mentor sees.** The header link for mentors goes to **Your teams**
+(`/mentor`): each team they mentor with milestones done, the next milestone
+due, the last check-in, and the 14-day flag. On a team page they can read
+everything, but they can't change the team's company, links or milestones.
+The two things they can do:
+
+- Tick **Mentor reviewed the draft** (only the mentor can, and only for teams
+  marked "Has a mentor") and click **Save mentor review**.
+- **Log a check-in** after each meeting: the day they met (today in New York
+  unless they change it), what they covered (up to 1000 characters), the next
+  step (optional, up to 500), and whether the team is on track, behind or
+  stuck. The form says "The team can read these notes, so write them to the
+  team." A mentor can edit their own check-ins with **Edit** under each one.
+
+Members and admins see check-ins newest first. Admins can't edit them. A
+mentor of another team gets "Page not found".
+
+**The 14-day flag.** On `/admin/teams` and `/mentor`, a team with a mentor is
+flagged in words:
+
+- **Needs a mentor**: marked "Has a mentor" but nobody is assigned (for
+  example, after their mentor was removed at `/admin/mentors`).
+- **No check-ins yet**: a mentor is assigned but hasn't logged a check-in.
+- **No check-in in 14+ days**: the latest check-in's meeting day was 14 or
+  more days ago.
+
+`/admin/teams` lists flagged teams first, in that order (oldest check-in first
+among the 14+ day ones), then every other team by name. The table scrolls
+sideways on a phone.
+
+**Removing and deleting.**
+
+- Removing a mentor at `/admin/mentors` takes away their access straight away.
+  Their teams show "Needs a mentor", and their check-ins stay on those teams.
+- If a mentor deletes their account, their check-ins stay on the team, shown
+  as "Logged by a former mentor".
+- When a team's last member leaves, its check-ins are deleted with it.
+- An admin taken off `ADMIN_EMAILS` stops mentoring their teams the next time
+  they sign in.
 
 ---
 

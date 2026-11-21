@@ -54,17 +54,70 @@ export function requireMentee(locals: GuardLocals): ProfileAccess {
 }
 
 /**
- * Who may open a team page: its members and admins. Everyone else gets the
- * same answer as for a team that doesn't exist, so team ids aren't confirmed.
- * (Mentors get access in a later phase.)
+ * What the viewer is to a team. More than one can be true: an admin who is
+ * the team's assigned mentor gets both admin and mentor actions there.
+ */
+export interface TeamCapabilities {
+  /** On the team. */
+  member: boolean;
+  /** The team's assigned mentor (a mentor, or an admin assigned as one). */
+  mentor: boolean;
+  /** A club officer. */
+  admin: boolean;
+}
+
+export function teamCapabilities(
+  profile: Pick<Profile, 'userId' | 'role'>,
+  memberUserIds: readonly string[],
+  mentorId: string | null,
+): TeamCapabilities {
+  return {
+    member: memberUserIds.includes(profile.userId),
+    mentor: mentorId !== null && mentorId === profile.userId && hasRole(profile.role, 'mentor'),
+    admin: profile.role === 'admin',
+  };
+}
+
+/**
+ * Who may open a team page: its members, its assigned mentor and admins.
+ * Everyone else gets the same answer as for a team that doesn't exist, so
+ * team ids aren't confirmed.
  */
 export function teamViewAccess(
   profile: Pick<Profile, 'userId' | 'role'>,
   memberUserIds: readonly string[],
+  mentorId: string | null,
 ): 'ok' | 'notfound' {
-  if (memberUserIds.includes(profile.userId)) return 'ok';
-  if (profile.role === 'admin') return 'ok';
-  return 'notfound';
+  const caps = teamCapabilities(profile, memberUserIds, mentorId);
+  return caps.member || caps.mentor || caps.admin ? 'ok' : 'notfound';
+}
+
+/** The forms on the team page, by their `action` field. */
+export const TEAM_ACTIONS = [
+  'details',
+  'links',
+  'new-code',
+  'milestones',
+  'checkin-add',
+  'checkin-edit',
+  'mentorship',
+] as const;
+export type TeamAction = (typeof TEAM_ACTIONS)[number];
+
+const actionsFor: Record<keyof TeamCapabilities, readonly TeamAction[]> = {
+  member: ['details', 'links', 'new-code', 'milestones'],
+  // Milestones here means only the mentor review (see canTick in milestones.ts).
+  mentor: ['milestones', 'checkin-add', 'checkin-edit'],
+  admin: ['mentorship'],
+};
+
+/** Every team-page form this viewer may send: what each of their capabilities allows. */
+export function allowedTeamActions(caps: TeamCapabilities): Set<TeamAction> {
+  const allowed = new Set<TeamAction>();
+  for (const key of Object.keys(actionsFor) as (keyof TeamCapabilities)[]) {
+    if (caps[key]) for (const action of actionsFor[key]) allowed.add(action);
+  }
+  return allowed;
 }
 
 /** Where each denial goes. Forbidden is answered in place with a 403 page. */

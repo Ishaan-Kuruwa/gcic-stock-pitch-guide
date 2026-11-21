@@ -1,9 +1,9 @@
 /**
  * Accounts database (Cloudflare D1, SQLite). The first four are Better Auth's
  * core tables, matching `getAuthTables()` in better-auth 1.7; the club tables
- * (profiles, mentor_invites, club_code_attempts), team tables and progress
- * tables follow. Change this file, then run `npm run db:generate` to write a
- * new migration in drizzle/migrations.
+ * (profiles, mentor_invites, club_code_attempts), team tables, progress
+ * tables and check-ins follow. Change this file, then run `npm run db:generate`
+ * to write a new migration in drizzle/migrations.
  *
  * Data rule (CLAUDE.md): Google name and email only. `user.image` and the
  * token columns on `account` exist because Better Auth expects them, but
@@ -254,6 +254,48 @@ export const teamMilestones = sqliteTable(
   (table) => [primaryKey({ columns: [table.teamId, table.key] })],
 );
 
+// ---------------------------------------------------------------------------
+// Check-ins (Phase E). A mentor's notes about a meeting with their team, which
+// the team, its mentor and admins can read. Notes about a meeting, never text
+// for the team's report, slides or pitch.
+// ---------------------------------------------------------------------------
+
+export const CHECKIN_STATUSES = ['on-track', 'behind', 'stuck'] as const;
+export type CheckinStatus = (typeof CHECKIN_STATUSES)[number];
+
+/**
+ * One meeting between a mentor and a team. Deleted with the team. Kept when
+ * the team changes mentor. `mentorId` becomes null if that mentor deletes
+ * their account, so the note stays without their name.
+ *
+ * `metOn` is the meeting day (YYYY-MM-DD). SQLite can't work out "today in
+ * New York", so its default is set by the app: the form starts at todayIn()
+ * and addCheckin falls back to it.
+ */
+export const checkins = sqliteTable(
+  'checkins',
+  {
+    id: text('id').primaryKey(),
+    teamId: text('team_id')
+      .notNull()
+      .references(() => teams.id, { onDelete: 'cascade' }),
+    mentorId: text('mentor_id').references(() => user.id, { onDelete: 'set null' }),
+    metOn: text('met_on').notNull(),
+    covered: text('covered').notNull(),
+    nextStep: text('next_step').default('').notNull(),
+    status: text('status', { enum: CHECKIN_STATUSES }).notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(nowMs).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).default(nowMs).notNull(),
+  },
+  (table) => [
+    index('checkins_team_idx').on(table.teamId, table.metOn),
+    check('checkins_status_check', sql`${table.status} in ('on-track', 'behind', 'stuck')`),
+    check('checkins_covered_check', sql`length(${table.covered}) between 1 and 1000`),
+    check('checkins_next_step_check', sql`length(${table.nextStep}) <= 500`),
+    check('checkins_met_on_check', sql`${table.metOn} glob '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`),
+  ],
+);
+
 /** Every table, for Drizzle queries in src/db/*.ts. */
 export const appSchema = {
   ...authSchema,
@@ -266,7 +308,9 @@ export const appSchema = {
   teamCodeAttempts,
   moduleProgress,
   teamMilestones,
+  checkins,
 };
 export type AppSchema = typeof appSchema;
 export type Profile = typeof profiles.$inferSelect;
 export type Team = typeof teams.$inferSelect;
+export type Checkin = typeof checkins.$inferSelect;

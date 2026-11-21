@@ -25,9 +25,19 @@ export function visibleMilestones(status: MentorshipStatus, list: readonly Miles
   return list.filter((m) => !m.mentoredOnly || status === 'mentored');
 }
 
-/** Can a team member tick or untick this milestone? (Mentors come in Phase E.) */
-export function memberCanTick(m: Milestone): boolean {
-  return !m.mentoredOnly;
+/** Who is ticking: from teamCapabilities in src/lib/guards.ts. */
+export interface TickCaps {
+  member: boolean;
+  mentor: boolean;
+}
+
+/**
+ * Can this viewer tick or untick this milestone? Members tick the team's own
+ * steps; only the assigned mentor ticks mentor-only ones (the mentor review).
+ * An admin who isn't the team's mentor ticks nothing.
+ */
+export function canTick(m: Milestone, caps: TickCaps): boolean {
+  return m.mentoredOnly ? caps.mentor : caps.member;
 }
 
 /** Whole days from one YYYY-MM-DD to another (positive when `to` is later). */
@@ -90,23 +100,26 @@ export interface MilestonePlan {
  * What a Save changes. Only rows the member actually changed count: a key
  * whose box differs from how it was shown. So a stale page can't undo a
  * teammate's tick made after it loaded, and saving twice changes nothing.
- * Mentor-only milestones, hidden milestones and unknown keys are never touched.
+ * Milestones this viewer can't tick (canTick), hidden milestones and unknown
+ * keys are never touched.
  *
  * @param current keys done in the database right now
  * @param shown   each row's state when the page was drawn (parseShown)
  * @param checked the `milestone` checkbox values that were sent
+ * @param caps    who is saving (a member, the assigned mentor, or both)
  */
 export function planMilestoneSave(
   current: ReadonlySet<string>,
   shown: ReadonlyMap<string, boolean>,
   checked: readonly unknown[],
   status: MentorshipStatus,
+  caps: TickCaps,
   list: readonly Milestone[] = milestones,
 ): MilestonePlan {
   const ticked = new Set(checked.filter((v): v is string => typeof v === 'string'));
   const plan: MilestonePlan = { add: [], remove: [] };
   for (const m of visibleMilestones(status, list)) {
-    if (!memberCanTick(m) || !shown.has(m.key)) continue;
+    if (!canTick(m, caps) || !shown.has(m.key)) continue;
     const was = shown.get(m.key);
     const now = ticked.has(m.key);
     if (now === was) continue;
@@ -114,4 +127,24 @@ export function planMilestoneSave(
     if (!now && current.has(m.key)) plan.remove.push(m.key);
   }
   return plan;
+}
+
+export interface NextDue {
+  label: string;
+  status: MilestoneStatus;
+}
+
+/**
+ * The first visible milestone that isn't done, with its status in words
+ * ("Due Dec 12" or "Due Dec 12, 3 days late"). Null when all are done.
+ */
+export function nextDueMilestone(
+  status: MentorshipStatus,
+  done: ReadonlySet<string>,
+  today: string,
+  list: readonly Milestone[] = milestones,
+): NextDue | null {
+  const next = visibleMilestones(status, list).find((m) => !done.has(m.key));
+  if (!next) return null;
+  return { label: next.label, status: milestoneStatus(next.due, null, today) };
 }

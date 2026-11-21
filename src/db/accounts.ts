@@ -10,6 +10,7 @@ import { normalizeEmail, roleForEmail } from '../lib/roles';
 import {
   account,
   appSchema,
+  checkins,
   clubCodeAttempts,
   mentorInvites,
   moduleProgress,
@@ -48,10 +49,15 @@ export async function syncRole(db: Db, userId: string, adminEmails: string[]): P
     .where(eq(mentorInvites.email, normalizeEmail(found.email)))
     .get();
   const role = roleForEmail(found.email, adminEmails, invite ? [invite.email] : []);
-  await db
-    .insert(profiles)
-    .values({ userId, role })
-    .onConflictDoUpdate({ target: profiles.userId, set: { role } });
+  await db.batch([
+    db
+      .insert(profiles)
+      .values({ userId, role })
+      .onConflictDoUpdate({ target: profiles.userId, set: { role } }),
+    // Only mentors and admins can be assigned to a team. Someone who is a
+    // member now (an admin taken off ADMIN_EMAILS, say) stops mentoring.
+    ...(role === 'mentee' ? [db.update(teams).set({ mentorId: null }).where(eq(teams.mentorId, userId))] : []),
+  ]);
   return role;
 }
 
@@ -110,15 +116,26 @@ export async function addMentor(db: Db, email: string): Promise<void> {
 
 /**
  * Remove a mentor email. If that person has an account as a mentor, they
- * become a mentee right away (and must enter the club code to continue).
+ * become a mentee right away (and must enter the club code to continue), and
+ * the teams they mentored have no mentor: they show "Needs a mentor" on
+ * /admin/teams. Their check-ins stay with those teams. Admins stay admins
+ * and keep their teams.
  */
 export async function removeMentor(db: Db, email: string): Promise<void> {
   const clean = normalizeEmail(email);
-  await db.delete(mentorInvites).where(eq(mentorInvites.email, clean));
-  await db
-    .update(profiles)
-    .set({ role: 'mentee' })
+  const demoted = db
+    .select({ id: profiles.userId })
+    .from(profiles)
     .where(and(eq(profiles.role, 'mentor'), inArray(profiles.userId, userIdsWithEmail(db, clean))));
+  await db.batch([
+    db.delete(mentorInvites).where(eq(mentorInvites.email, clean)),
+    // Before the role change below, while they are still a mentor.
+    db.update(teams).set({ mentorId: null }).where(inArray(teams.mentorId, demoted)),
+    db
+      .update(profiles)
+      .set({ role: 'mentee' })
+      .where(and(eq(profiles.role, 'mentor'), inArray(profiles.userId, userIdsWithEmail(db, clean)))),
+  ]);
 }
 
 /**
@@ -126,7 +143,8 @@ export async function removeMentor(db: Db, email: string): Promise<void> {
  * membership (and their team, with its links and milestones, if they were the
  * last member), join-code and club-code tries, profile, sessions, Google
  * account link and the user row. Milestones they ticked on a team that lives
- * on stay ticked, with no name attached.
+ * on stay ticked, with no name attached. A mentor's check-in notes stay with
+ * their teams, also with no name, and those teams have no mentor.
  * One batch, so it all goes or none.
  */
 export async function deleteAccount(db: Db, userId: string): Promise<void> {
@@ -134,6 +152,7 @@ export async function deleteAccount(db: Db, userId: string): Promise<void> {
   await db.batch([
     db.update(teams).set({ mentorId: null }).where(eq(teams.mentorId, userId)),
     db.update(teamMilestones).set({ doneBy: null }).where(eq(teamMilestones.doneBy, userId)),
+    db.update(checkins).set({ mentorId: null }).where(eq(checkins.mentorId, userId)),
     ...(teamId ? removeMemberStatements(db, userId, teamId) : []),
     db.delete(moduleProgress).where(eq(moduleProgress.userId, userId)),
     db.delete(teamCodeAttempts).where(eq(teamCodeAttempts.userId, userId)),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeNavHint, encodeNavHint, NAV_HINT_COOKIE, readNavHint } from './navHint';
+import { accountHrefFor, decodeNavHint, encodeNavHint, NAV_HINT_COOKIE, readNavHint } from './navHint';
 
 describe('nav hint cookie', () => {
   it('round-trips through a cookie string', () => {
@@ -25,5 +25,20 @@ describe('nav hint cookie', () => {
   it('caps the name length and rejects blank names', () => {
     expect(decodeNavHint(encodeNavHint({ name: 'x'.repeat(100), href: '/account' }))?.name).toHaveLength(40);
     expect(decodeNavHint(encodeURIComponent(JSON.stringify({ n: ' ', h: '/account' })))).toBeNull();
+  });
+});
+
+describe('accountHrefFor', () => {
+  it('sends admins to all teams, mentors to their teams, members to their account', () => {
+    expect(accountHrefFor('admin')).toBe('/admin/teams');
+    expect(accountHrefFor('mentor')).toBe('/mentor');
+    expect(accountHrefFor('mentee')).toBe('/account');
+  });
+
+  it('every link it gives survives the cookie', () => {
+    for (const role of ['admin', 'mentor', 'mentee'] as const) {
+      const href = accountHrefFor(role);
+      expect(decodeNavHint(encodeNavHint({ name: 'Ada', href }))?.href).toBe(href);
+    }
   });
 });

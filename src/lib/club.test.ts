@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { milestones, targetSubmitDate, templates } from '../data/club';
+import { mentorship, milestones, targetSubmitDate, templates } from '../data/club';
 
 describe('club templates', () => {
   it.each(Object.entries(templates))('%s is a Google Docs "make a copy" link', (_id, t) => {
@@ -39,4 +39,18 @@ describe('club milestones', () => {
       'mentor-review',
     ]);
   });
+});
+
+describe('club mentorship', () => {
+  it('closes on a real date before the target submit date', () => {
+    expect(mentorship.closes).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(new Date(`${mentorship.closes}T00:00:00Z`).toISOString().slice(0, 10)).toBe(mentorship.closes);
+    expect(mentorship.closes < targetSubmitDate).toBe(true);
+  });
+
+  it('has an https application link, or none yet', () => {
+    if (mentorship.applicationUrl !== null) expect(new URL(mentorship.applicationUrl).protocol).toBe('https:');
+  });
+
+  it('checks in every 14 days', () => expect(mentorship.checkinEveryDays).toBe(14));
 });

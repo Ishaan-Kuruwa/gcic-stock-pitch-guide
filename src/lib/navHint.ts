@@ -7,7 +7,8 @@
 export const NAV_HINT_COOKIE = 'ghic_nav';
 /** Same as Better Auth's default session length: 7 days. */
 export const NAV_HINT_MAX_AGE = 60 * 60 * 24 * 7;
-export const NAV_HINT_HREFS = ['/account', '/admin/mentors'] as const;
+/** /admin/mentors stays on the list so a cookie set before Phase E still reads. */
+export const NAV_HINT_HREFS = ['/account', '/mentor', '/admin/teams', '/admin/mentors'] as const;
 const MAX_NAME = 40;
 
 export interface NavHint {
@@ -42,4 +43,11 @@ export function readNavHint(cookieString: string): NavHint | null {
     if (part.slice(0, eq).trim() === NAV_HINT_COOKIE) return decodeNavHint(part.slice(eq + 1).trim());
   }
   return null;
+}
+
+/** Where the header's name links: admins to all teams, mentors to their teams, members to their account. */
+export function accountHrefFor(role: 'mentee' | 'mentor' | 'admin'): NavHint['href'] {
+  if (role === 'admin') return '/admin/teams';
+  if (role === 'mentor') return '/mentor';
+  return '/account';
 }

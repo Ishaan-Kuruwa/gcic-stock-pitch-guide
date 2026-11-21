@@ -5,13 +5,22 @@
  *
  * Teams never sit empty: creating a team adds its creator in the same batch,
  * and the last member leaving (or deleting their account) deletes the team
- * and its links and milestones in the same batch.
+ * and its links, milestones and check-ins in the same batch.
  */
 import { and, eq, gt, notExists, sql } from 'drizzle-orm';
 import { WINDOW_MS } from '../lib/clubCode';
 import { generateJoinCode, normalizeJoinCode, TEAM_LINK_KINDS, type TeamLinkKind } from '../lib/teams';
 import type { Db } from './accounts';
-import { profiles, teamCodeAttempts, teamLinks, teamMembers, teamMilestones, teams, type Team } from './schema';
+import {
+  checkins,
+  profiles,
+  teamCodeAttempts,
+  teamLinks,
+  teamMembers,
+  teamMilestones,
+  teams,
+  type Team,
+} from './schema';
 
 export interface TeamMember {
   userId: string;
@@ -174,7 +183,8 @@ export async function regenerateJoinCode(db: Db, teamId: string): Promise<string
 
 /**
  * Statements that remove a user from a team, then delete the team's links,
- * milestones and the team if nobody is left. For a batch: leaveTeam and
+ * milestones, check-ins and the team if nobody is left. The team delete is
+ * always last. For a batch: leaveTeam and
  * deleteAccount.
  */
 export function removeMemberStatements(db: Db, userId: string, teamId: string) {
@@ -185,16 +195,17 @@ export function removeMemberStatements(db: Db, userId: string, teamId: string) {
     db.delete(teamMembers).where(eq(teamMembers.userId, userId)),
     db.delete(teamLinks).where(and(eq(teamLinks.teamId, teamId), nobodyLeft)),
     db.delete(teamMilestones).where(and(eq(teamMilestones.teamId, teamId), nobodyLeft)),
+    db.delete(checkins).where(and(eq(checkins.teamId, teamId), nobodyLeft)),
     db.delete(teams).where(and(eq(teams.id, teamId), nobodyLeft)),
   ] as const;
 }
 
 export type LeaveResult = 'left' | 'team-deleted' | 'not-on-team';
 
-/** Leave your team. The last member leaving deletes the team, its links and milestones. */
+/** Leave your team. The last member leaving deletes the team, its links, milestones and check-ins. */
 export async function leaveTeam(db: Db, userId: string): Promise<LeaveResult> {
   const teamId = await getTeamIdForUser(db, userId);
   if (!teamId) return 'not-on-team';
-  const [, , , deletedTeam] = await db.batch(removeMemberStatements(db, userId, teamId));
-  return deletedTeam.meta.changes > 0 ? 'team-deleted' : 'left';
+  const results = await db.batch(removeMemberStatements(db, userId, teamId));
+  return results[results.length - 1]!.meta.changes > 0 ? 'team-deleted' : 'left';
 }
