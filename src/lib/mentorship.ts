@@ -183,3 +183,54 @@ export function overviewRows(teams: readonly TeamOverviewData[], today: string):
       return a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }) || a.id.localeCompare(b.id);
     });
 }
+
+// ---------------------------------------------------------------------------
+// The CSV download on /admin/teams
+// ---------------------------------------------------------------------------
+
+/**
+ * Column headings for /admin/teams.csv. No emails and no check-in notes:
+ * only what the All teams table shows, for officers' records.
+ */
+export const TEAMS_CSV_HEADER = [
+  'Team',
+  'Members (grade)',
+  'Company',
+  'Ticker',
+  'Mentorship status',
+  'Mentor',
+  'Milestones done',
+  'Next due',
+  'Next due date',
+  'Last check-in date',
+  'Last check-in status',
+  'Attention',
+] as const;
+
+/** The CSV's header and one row per team, in the All teams order. */
+export function teamsCsvRows(teams: readonly TeamOverviewData[], today: string): string[][] {
+  const byId = new Map(teams.map((t) => [t.id, t]));
+  const rows = overviewRows(teams, today).map((row) => {
+    const team = byId.get(row.id)!;
+    return [
+      row.name,
+      team.members.map((m) => `${m.name ?? 'Member'}${m.grade !== null ? ` (${m.grade})` : ''}`).join('; '),
+      team.company ?? '',
+      team.ticker ?? '',
+      row.statusLabel,
+      row.mentor ?? '',
+      `${row.done} of ${row.total}`,
+      row.nextDue ? row.nextDue.label : 'All done',
+      row.nextDue ? row.nextDue.status.date : '',
+      team.lastCheckin?.metOn ?? '',
+      team.lastCheckin ? checkinStatusLabels[team.lastCheckin.status] : '',
+      row.flagText ?? '',
+    ];
+  });
+  return [[...TEAMS_CSV_HEADER], ...rows];
+}
+
+/** "ghic-teams-2026-11-21.csv". */
+export function teamsCsvFilename(today: string): string {
+  return `ghic-teams-${today}.csv`;
+}

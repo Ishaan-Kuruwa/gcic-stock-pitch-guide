@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Test helpers aren't pages: words in them ("container") must not become CSS. */
+@source not "../test";
 
 /*
  * Theme tokens. Raw values live in --gc-* variables; Tailwind utilities

@@ -4,8 +4,9 @@
 database, and three secrets. **Phase B** (steps 7–10) adds roles, the club
 code, the mentor list and the privacy page. **Phase C** (step 11) adds teams.
 **Phase D** (step 12) saves module progress to accounts and adds team
-milestones. **Phase E** (step 13) adds mentors for teams and check-ins. Do the
-steps in order. Each one says what to click and what to paste.
+milestones. **Phase E** (step 13) adds mentors for teams and check-ins.
+**Phase F** adds the CSV download and the end-of-season delete, and ends with
+the launch checklist. Do the steps in order. Each one says what to click and what to paste.
 
 Values used below:
 
@@ -521,6 +522,85 @@ sideways on a phone.
 - When a team's last member leaves, its check-ins are deleted with it.
 - An admin taken off `ADMIN_EMAILS` stops mentoring their teams the next time
   they sign in.
+
+---
+
+# Phase F: launch and end of season
+
+Phase F adds no tables and no secrets: nothing to migrate.
+
+## Launch checklist
+
+Do these in order before telling members to sign up. Tick each one off.
+
+1. **Fill in the privacy page.** In `src/pages/privacy.astro`, replace the two
+   TODO boxes: the date season data is deleted (the day you plan to run
+   [End of season](#end-of-season) below) and the email students and parents
+   can write to. Deploy.
+2. **Advisor approval.** The club advisor reads and approves
+   <https://gcic-stock-pitch-guide.ishaan-wizard.workers.dev/privacy>. Don't go
+   past this step without it.
+3. **Mentor emails.** Add every mentor's Google email at `/admin/mentors`
+   ([step 9](#9-add-mentors)). Ask each mentor to sign in once, so they can be
+   assigned to teams.
+4. **CLUB_CODE.** Set this season's club code
+   ([step 8](#8-set-admin_emails-and-club_code)):
+   `npx wrangler secret put CLUB_CODE`. Check `ADMIN_EMAILS` lists every
+   officer too.
+5. **Privacy URL in Google.** Google Auth Platform → **Branding** →
+   **Privacy policy link**: paste
+   `https://gcic-stock-pitch-guide.ishaan-wizard.workers.dev/privacy` and
+   **Save** ([step 10](#10-before-students-sign-up), item 2).
+6. **Move the app to In production.** Google Auth Platform → **Audience** →
+   **Publish app** → **Confirm** ([step 10](#10-before-students-sign-up),
+   item 3). The status should say **In production**.
+7. **Live end-to-end sign-up test**, on the live site, with a personal Google
+   account that has never signed in here (not a test user):
+   1. Sign in at `/account`. Google shouldn't say the app is in testing.
+   2. At `/join`, enter a name, grade and the club code. You land on
+      `/account`.
+   3. **Create a team**, then copy its join code.
+   4. In a private window, sign in with a second new account, finish `/join`
+      and join the team with the code.
+   5. As an admin, set the team to **Has a mentor** with a mentor; as that
+      mentor, log a check-in.
+   6. As an admin, open **All teams** and click **Download CSV**. Check the
+      team, both members, the mentor and the check-in date are there.
+   7. Delete both test accounts at `/account/delete`. The team goes with the
+      last member.
+   8. Write the result in [Test results](#test-results).
+
+## End of season
+
+After the competition (and after any results are announced), delete this
+season's member data, as the privacy page promises.
+
+**What's deleted:** every member (mentee) account, with its profile (name and
+grade), sign-in sessions, Google link, module progress and club-code tries;
+and every team, with its members, links, milestones, check-ins and join-code
+tries.
+
+**What's kept:** admin and mentor accounts (with their own module progress),
+and the mentor list at `/admin/mentors`. An officer or mentor who signed in
+but never finished `/join` is kept too, as long as their email is in
+`ADMIN_EMAILS` or on the mentor list. Files in Google Drive aren't touched: the
+site only stores links to them.
+
+1. Sign in as an admin and open **All teams** (`/admin/teams`).
+2. Click **Download CSV** and keep the file somewhere only officers can see
+   (no emails or check-in notes are in it, but it has names and grades).
+3. Click **End of season** (`/admin/season`). Check the counts: how many member
+   accounts and teams will be deleted, and how many admins, mentors and mentor
+   emails are kept. If a mentor shows up as a member, add their email at
+   `/admin/mentors` first.
+4. Type `DELETE SEASON` exactly, in capitals, and click **Delete member
+   accounts and teams**. It runs as one step: either everything listed goes or
+   nothing does. The page then says how many accounts and teams were deleted.
+   It can't be undone.
+
+**Next season:** set a new club code (`npx wrangler secret put CLUB_CODE`),
+update `ADMIN_EMAILS` for new officers, remove mentors who aren't returning
+at `/admin/mentors`, and update the deletion date on the privacy page.
 
 ---
 

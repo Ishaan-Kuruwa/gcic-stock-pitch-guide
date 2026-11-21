@@ -20,6 +20,8 @@ export const prerender = false;
 
 const access = requireUser(Astro.locals);
 if (!access.ok) return denied(Astro, access);
+// Another site's POST is refused before anything else runs (or is written).
+if (Astro.request.method === 'POST' && !isSameOrigin(Astro.request)) return crossSiteResponse();
 
 const db = getDb();
 let profile = access.profile;
@@ -46,7 +48,6 @@ if (needsCode) {
 }
 
 if (Astro.request.method === 'POST' && lockedMinutes === 0) {
-  if (!isSameOrigin(Astro.request)) return crossSiteResponse();
   const form = await Astro.request.formData();
   const parsed = parseJoinForm(form, needsCode);
   const rawGrade = Number(form.get('grade'));
