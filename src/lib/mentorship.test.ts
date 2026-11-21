@@ -5,6 +5,9 @@ import {
   overviewRows,
   parseMentorshipForm,
   showMentorApplication,
+  TEAMS_CSV_HEADER,
+  teamsCsvFilename,
+  teamsCsvRows,
   type TeamOverviewData,
 } from './mentorship';
 
@@ -176,5 +179,81 @@ describe('overviewRows', () => {
   it('counts only visible milestones for teams without a mentor', () => {
     const [row] = overviewRows([team({ doneKeys: ['mentor-review', 'comps'] })], TODAY);
     expect([row!.done, row!.total]).toEqual([1, 8]);
+  });
+});
+
+describe('teamsCsvRows', () => {
+  const team = (over: Partial<TeamOverviewData>): TeamOverviewData => ({
+    id: 't1',
+    name: 'Bulls',
+    company: null,
+    ticker: null,
+    mentorshipStatus: 'self-guided',
+    mentorId: null,
+    mentorName: null,
+    members: [],
+    doneKeys: [],
+    lastCheckin: null,
+    ...over,
+  });
+
+  it('starts with the header row', () => {
+    expect(teamsCsvRows([], '2026-12-01')).toEqual([[...TEAMS_CSV_HEADER]]);
+  });
+
+  it('writes full names with grades, company and ticker apart, and the latest check-in', () => {
+    const [, row] = teamsCsvRows(
+      [
+        team({
+          company: 'Apple',
+          ticker: 'AAPL',
+          mentorshipStatus: 'mentored',
+          mentorId: 'm',
+          mentorName: 'Grace Hopper',
+          members: [
+            { name: 'Ada Lovelace', grade: 10 },
+            { name: 'Ben Ng', grade: 11 },
+          ],
+          doneKeys: ['company-picked'],
+          lastCheckin: { metOn: '2026-11-28', status: 'behind' },
+        }),
+      ],
+      '2026-12-01',
+    );
+    expect(row).toEqual([
+      'Bulls',
+      'Ada Lovelace (10); Ben Ng (11)',
+      'Apple',
+      'AAPL',
+      'Has a mentor',
+      'Grace Hopper',
+      '1 of 9',
+      'Registered with YIS',
+      '2026-12-19',
+      '2026-11-28',
+      'Behind',
+      '',
+    ]);
+  });
+
+  it('leaves blanks where there is no company, mentor or check-in, and shows the attention flag', () => {
+    const [, row] = teamsCsvRows([team({ mentorshipStatus: 'mentored' })], '2026-12-01');
+    expect(row[2]).toBe('');
+    expect(row[3]).toBe('');
+    expect(row[5]).toBe('');
+    expect(row[9]).toBe('');
+    expect(row[10]).toBe('');
+    expect(row[11]).not.toBe('');
+  });
+
+  it('never includes anything that looks like an email', () => {
+    const rows = teamsCsvRows([team({ members: [{ name: 'Ada', grade: 9 }], mentorName: 'Grace', mentorId: 'm' })], '2026-12-01');
+    expect(rows.flat().some((cell) => cell.includes('@'))).toBe(false);
+  });
+});
+
+describe('teamsCsvFilename', () => {
+  it('puts the date in the name', () => {
+    expect(teamsCsvFilename('2026-11-21')).toBe('ghic-teams-2026-11-21.csv');
   });
 });

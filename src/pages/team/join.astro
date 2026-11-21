@@ -13,6 +13,8 @@ export const prerender = false;
 
 const access = requireMentee(Astro.locals);
 if (!access.ok) return denied(Astro, access);
+// Another site's POST is refused, even when it would change nothing.
+if (Astro.request.method === 'POST' && !isSameOrigin(Astro.request)) return crossSiteResponse();
 
 const db = getDb();
 const userId = access.user.id;
@@ -26,7 +28,6 @@ const tries = await recentWrongTeamCodes(db, userId, now);
 if (isLockedOut(tries, now, MAX_JOIN_TRIES)) lockedMinutes = minutesUntilRetry(tries, now, MAX_JOIN_TRIES);
 
 if (Astro.request.method === 'POST' && !currentTeamId && lockedMinutes === 0) {
-  if (!isSameOrigin(Astro.request)) return crossSiteResponse();
   const form = await Astro.request.formData();
   const raw = form.get('code');
   code = typeof raw === 'string' ? raw : '';

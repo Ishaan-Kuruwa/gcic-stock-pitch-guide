@@ -27,6 +27,8 @@ import {
 
 export interface TestDb {
   db: Db;
+  /** The raw binding, for code that builds its own client (route tests). */
+  d1: D1Database;
   dispose(): Promise<void>;
 }
 
@@ -38,7 +40,7 @@ export async function startTestDb(): Promise<TestDb> {
       if (statement.trim()) await proxy.env.DB.prepare(statement).run();
     }
   }
-  return { db: drizzle(proxy.env.DB, { schema: appSchema }), dispose: () => proxy.dispose() };
+  return { db: drizzle(proxy.env.DB, { schema: appSchema }), d1: proxy.env.DB, dispose: () => proxy.dispose() };
 }
 
 /** Empty every table, children first. */

@@ -12,6 +12,8 @@ export const prerender = false;
 // Teams are for members (mentees); mentors and admins get a 403.
 const access = requireMentee(Astro.locals);
 if (!access.ok) return denied(Astro, access);
+// Another site's POST is refused, even when it would change nothing.
+if (Astro.request.method === 'POST' && !isSameOrigin(Astro.request)) return crossSiteResponse();
 
 const db = getDb();
 let currentTeamId = await getTeamIdForUser(db, access.user.id);
@@ -19,7 +21,6 @@ let name = '';
 let error: string | null = null;
 
 if (Astro.request.method === 'POST' && !currentTeamId) {
-  if (!isSameOrigin(Astro.request)) return crossSiteResponse();
   const form = await Astro.request.formData();
   const raw = form.get('name');
   name = typeof raw === 'string' ? raw : '';

@@ -34,6 +34,8 @@ const flagged = rows.filter((r) => r.flag).length;
     <p class="mt-4 flex flex-wrap gap-x-6 gap-y-2">
       <a href="/mentor" class:list={['font-bold', focus]}>Teams I mentor</a>
       <a href="/admin/mentors" class:list={['font-bold', focus]}>Manage mentors</a>
+      <a href="/admin/teams.csv" download class:list={['font-bold', focus]}>Download CSV</a>
+      <a href="/admin/season" class:list={['font-bold', focus]}>End of season</a>
     </p>
     <p class="mt-6 text-lg font-bold">
       {rows.length} {rows.length === 1 ? 'team' : 'teams'}, {flagged} {flagged === 1 ? 'needs' : 'need'} attention.
