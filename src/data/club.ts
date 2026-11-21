@@ -70,10 +70,10 @@ export const milestones = [
   { key: 'yis-registered', label: 'Registered with YIS', due: '2026-12-19' },
   { key: 'financials', label: 'Financials sheet filled in', due: '2027-01-02' },
   { key: 'comps', label: 'Comps and target price done', due: '2027-01-09' },
-  { key: 'report-draft', label: 'Report first draft', due: '2027-01-23' },
-  { key: 'mentor-review', label: 'Mentor reviewed the draft', due: '2027-01-30', mentoredOnly: true },
-  { key: 'slides', label: 'Slides done', due: '2027-02-06' },
-  { key: 'video', label: 'Video recorded, under 10 minutes', due: '2027-02-13' },
+  { key: 'report-draft', label: 'Report first draft', due: '2027-01-15' },
+  { key: 'mentor-review', label: 'Mentor reviewed the draft', due: '2027-01-22', mentoredOnly: true },
+  { key: 'slides', label: 'Slides done', due: '2027-02-05' },
+  { key: 'video', label: 'Video recorded, under 10 minutes', due: '2027-02-12' },
   { key: 'submitted', label: 'Submitted to YIS', due: targetSubmitDate },
 ] as const satisfies readonly Milestone[];
 
