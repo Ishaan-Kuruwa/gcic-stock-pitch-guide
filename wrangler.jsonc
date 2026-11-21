@@ -2,7 +2,12 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "gcic-stock-pitch-guide",
   "compatibility_date": "2026-11-16",
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // assets_navigation_has_no_effect: since compatibility date 2025-04-01, a
+  // browser page load (Sec-Fetch-Mode: navigate) for a URL with no static file
+  // gets the 404 page from assets without running the Worker, which breaks
+  // every on-demand page (/account, /join, /team/..., /admin/..., /mentor).
+  // This flag sends those requests to the Worker again.
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public", "assets_navigation_has_no_effect"],
   // Astro's Cloudflare adapter. Prerendered pages are served straight from
   // static assets; only on-demand routes (sign-in, /account) run the Worker.
   "main": "@astrojs/cloudflare/entrypoints/server",
