@@ -12,9 +12,11 @@ import {
   appSchema,
   clubCodeAttempts,
   mentorInvites,
+  moduleProgress,
   profiles,
   session,
   teamCodeAttempts,
+  teamMilestones,
   teams,
   user,
   type Profile,
@@ -120,16 +122,20 @@ export async function removeMentor(db: Db, email: string): Promise<void> {
 }
 
 /**
- * Delete everything stored about a user: their team membership (and their
- * team, with its links, if they were the last member), join-code and
- * club-code tries, profile, sessions, Google account link and the user row.
+ * Delete everything stored about a user: their module progress, their team
+ * membership (and their team, with its links and milestones, if they were the
+ * last member), join-code and club-code tries, profile, sessions, Google
+ * account link and the user row. Milestones they ticked on a team that lives
+ * on stay ticked, with no name attached.
  * One batch, so it all goes or none.
  */
 export async function deleteAccount(db: Db, userId: string): Promise<void> {
   const teamId = await getTeamIdForUser(db, userId);
   await db.batch([
     db.update(teams).set({ mentorId: null }).where(eq(teams.mentorId, userId)),
+    db.update(teamMilestones).set({ doneBy: null }).where(eq(teamMilestones.doneBy, userId)),
     ...(teamId ? removeMemberStatements(db, userId, teamId) : []),
+    db.delete(moduleProgress).where(eq(moduleProgress.userId, userId)),
     db.delete(teamCodeAttempts).where(eq(teamCodeAttempts.userId, userId)),
     db.delete(clubCodeAttempts).where(eq(clubCodeAttempts.userId, userId)),
     db.delete(profiles).where(eq(profiles.userId, userId)),

@@ -8,6 +8,7 @@ import {
   formatMultiple,
   formatPercent,
   formatShortDate,
+  formatShortMonthDay,
 } from './format';
 
 // Tests run with TZ=America/Los_Angeles (vitest.config.ts), so these catch day shifts.
@@ -21,6 +22,13 @@ describe('formatMonthDay', () => {
   it('formats month and day without shifting the day', () => {
     expect(formatMonthDay('2027-02-17')).toBe('February 17');
     expect(formatMonthDay('2027-01-01')).toBe('January 1');
+  });
+});
+
+describe('formatShortMonthDay', () => {
+  it('formats a short month and day without shifting the day', () => {
+    expect(formatShortMonthDay('2026-12-12')).toBe('Dec 12');
+    expect(formatShortMonthDay('2027-01-02')).toBe('Jan 2');
   });
 });
 

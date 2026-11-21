@@ -1,8 +1,9 @@
 /**
  * Accounts database (Cloudflare D1, SQLite). The first four are Better Auth's
  * core tables, matching `getAuthTables()` in better-auth 1.7; the club tables
- * (profiles, mentor_invites, club_code_attempts) and team tables follow. Change this file, then
- * run `npm run db:generate` to write a new migration in drizzle/migrations.
+ * (profiles, mentor_invites, club_code_attempts), team tables and progress
+ * tables follow. Change this file, then run `npm run db:generate` to write a
+ * new migration in drizzle/migrations.
  *
  * Data rule (CLAUDE.md): Google name and email only. `user.image` and the
  * token columns on `account` exist because Better Auth expects them, but
@@ -216,7 +217,44 @@ export const teamCodeAttempts = sqliteTable(
   (table) => [index('team_code_attempts_userId_idx').on(table.userId)],
 );
 
-/** Every table, for Drizzle queries in src/db/accounts.ts and src/db/teams.ts. */
+// ---------------------------------------------------------------------------
+// Progress (Phase D). Module ticks per student, keyed by module slug
+// ("value-the-company"), and team milestones, keyed by the milestone keys in
+// src/data/club.ts. Neither has a CHECK on its key, so officers can rename
+// modules or milestones without a migration; unknown keys are ignored when read.
+// ---------------------------------------------------------------------------
+
+/** A module the student has marked done. Deleted with the account. */
+export const moduleProgress = sqliteTable(
+  'module_progress',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    moduleSlug: text('module_slug').notNull(),
+    completedAt: integer('completed_at', { mode: 'timestamp_ms' }).default(nowMs).notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.moduleSlug] })],
+);
+
+/**
+ * A team milestone that's done. Deleted with the team. `doneBy` is who ticked
+ * it; it becomes null if that person deletes their account.
+ */
+export const teamMilestones = sqliteTable(
+  'team_milestones',
+  {
+    teamId: text('team_id')
+      .notNull()
+      .references(() => teams.id, { onDelete: 'cascade' }),
+    key: text('key').notNull(),
+    doneAt: integer('done_at', { mode: 'timestamp_ms' }).default(nowMs).notNull(),
+    doneBy: text('done_by').references(() => user.id, { onDelete: 'set null' }),
+  },
+  (table) => [primaryKey({ columns: [table.teamId, table.key] })],
+);
+
+/** Every table, for Drizzle queries in src/db/*.ts. */
 export const appSchema = {
   ...authSchema,
   profiles,
@@ -226,6 +264,8 @@ export const appSchema = {
   teamMembers,
   teamLinks,
   teamCodeAttempts,
+  moduleProgress,
+  teamMilestones,
 };
 export type AppSchema = typeof appSchema;
 export type Profile = typeof profiles.$inferSelect;

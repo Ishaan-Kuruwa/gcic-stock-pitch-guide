@@ -3,7 +3,8 @@
 **Phase A** (steps 1–6) sets up Google sign-in: a Google OAuth client, the D1
 database, and three secrets. **Phase B** (steps 7–10) adds roles, the club
 code, the mentor list and the privacy page. **Phase C** (step 11) adds teams.
-Do the steps in order. Each one says what to click and what to paste.
+**Phase D** (step 12) saves module progress to accounts and adds team
+milestones. Do the steps in order. Each one says what to click and what to paste.
 
 Values used below:
 
@@ -368,6 +369,69 @@ You should see `0002_teams.sql ✅`.
 - **Leaving:** **Leave team** on the team page, with a confirm step. When the
   last member leaves, the team and its links are deleted. Deleting an account
   does the same.
+
+---
+
+# Phase D: progress and milestones
+
+## 12. Apply the progress tables
+
+Before merging the Phase D PR, add the new tables to both databases:
+
+```sh
+npm run db:migrate:local
+npm run db:migrate:remote
+```
+
+You should see `0003_progress_milestones.sql ✅`. No new secrets.
+
+## How progress and milestones work
+
+**Module progress** (the checklist on `/learn` and "Your next step" on the
+home page):
+
+- **Signed out**, nothing changes: ticks are saved only in that browser.
+- **The first time someone signs in on a device**, the ticks already in that
+  browser are added to the ones saved on their account (nothing is unticked),
+  and the browser remembers that this happened for that account.
+- **After that, the account wins.** Each page load shows the account's ticks,
+  and each tick or untick is saved to the account straight away. Ticking on a
+  phone shows up on a Chromebook at the next page load.
+- **Offline or signed out mid-session:** the tick stays on screen and in the
+  browser, with the note "Not saved, you're offline or signed out". Ticks that
+  weren't saved are lost when the student signs out (see the next point), so
+  they should tick again once they're back online.
+- **Shared Chromebooks:** after someone signs out, the next page with the
+  checklist clears the ticks that came from their account, so the next person
+  starts empty. Their ticks are still on their account. Ticks copied from one
+  student's account are never added to another student's account.
+- `/account` lists every module with "Done" or "Not done". On the team page,
+  each member shows "Modules: N of M done".
+
+**Milestones** (the team page, `/team/[id]`):
+
+- Nine steps from "Company picked" to "Submitted to YIS", each with GHIC's due
+  date. Each row says "Done Dec 10", "Due Dec 12" or "Due Dec 12, 3 days late"
+  in words. "Today" is the date in New York (`clubTimeZone` in
+  `src/data/club.ts`).
+- Any team member can tick or untick a milestone and click **Save
+  milestones**. It works without JavaScript. Saving only changes the boxes
+  you changed, so it can't undo a teammate's tick made while your page was open.
+- **Mentor reviewed the draft** only shows for teams whose mentorship status is
+  "Has a mentor". Even then, members can't tick it ("Your mentor marks this");
+  mentors get that in a later phase.
+- Admins see the milestones read-only.
+
+**To change a due date**, edit `milestones` in `src/data/club.ts` (dates are
+`YYYY-MM-DD`). "Submitted to YIS" always uses `targetSubmitDate` in the same
+file. A test (`npm test`) fails if any date is after `targetSubmitDate` or
+out of order. Don't rename a milestone's `key` during a season: ticks saved
+under the old key stop showing.
+
+**Deleting:** deleting an account deletes its module progress. Milestones
+belong to the team: they stay when one member leaves or deletes their account
+(without that person's name attached), and are deleted with the team when the
+last member leaves.
 
 ---
 

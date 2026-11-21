@@ -2,13 +2,25 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import CopyButton from '../../../components/CopyButton';
 import GlossaryTerm from '../../../components/GlossaryTerm.astro';
+import { getCollection } from 'astro:content';
 import NotFound from '../../../components/NotFound.astro';
 import { claimBoardUrl } from '../../../data/club';
 import { limits } from '../../../data/competition';
 import { getDb } from '../../../db/client';
+import { getTeamMilestones, saveTeamMilestones } from '../../../db/milestones';
+import { countModuleProgress } from '../../../db/progress';
 import { getTeam, regenerateJoinCode, setTeamLinks, updateTeamDetails } from '../../../db/teams';
 import { denied, requireProfile, teamViewAccess } from '../../../lib/guards';
 import { crossSiteResponse, isSameOrigin } from '../../../lib/origin';
+import {
+  memberCanTick,
+  milestoneStatus,
+  parseShown,
+  planMilestoneSave,
+  todayIn,
+  visibleMilestones,
+} from '../../../lib/milestones';
+import { moduleCatalog } from '../../../lib/modules';
 import { firstName } from '../../../lib/profile';
 import {
   LINK_RULE,
@@ -73,6 +85,16 @@ if (!visible) {
     }
     linkErrors = parsed.errors;
     linkValues = parsed.values;
+  } else if (action === 'milestones') {
+    const current = await getTeamMilestones(db, teamId);
+    const plan = planMilestoneSave(
+      new Set(current.keys()),
+      parseShown(form.getAll('shown')),
+      form.getAll('milestone'),
+      view!.team.mentorshipStatus,
+    );
+    await saveTeamMilestones(db, teamId, access.user.id, plan);
+    return Astro.redirect(`/team/${teamId}?status=milestones#milestones`, 303);
   } else if (action === 'new-code') {
     await regenerateJoinCode(db, teamId);
     return Astro.redirect(`/team/${teamId}?status=code#join-code`, 303);
@@ -85,6 +107,7 @@ const statusMessages: Record<string, string> = {
   details: 'Saved your company and ticker.',
   links: 'Saved your links.',
   code: 'Made a new join code. The old code no longer works.',
+  milestones: 'Saved your milestones.',
 };
 const statusMessage = status ? (statusMessages[status] ?? null) : null;
 const detailsErrorList = Object.values(detailsErrors);
@@ -93,6 +116,24 @@ const savedLinks = TEAM_LINK_KINDS.filter((k) => view?.links[k]);
 const team = view?.team;
 const members = view?.members ?? [];
 const full = members.length >= limits.maxTeamSize;
+
+// Module progress for each member, and the team's milestones.
+const catalog = visible ? moduleCatalog(await getCollection('modules')) : [];
+const moduleCounts = visible
+  ? await countModuleProgress(
+      db,
+      members.map((m) => m.userId),
+      catalog.map((m) => m.slug),
+    )
+  : new Map<string, number>();
+const doneMilestones = visible ? await getTeamMilestones(db, teamId) : new Map<string, Date>();
+const today = todayIn();
+const milestoneRows = team
+  ? visibleMilestones(team.mentorshipStatus).map((m) => {
+      const doneAt = doneMilestones.get(m.key) ?? null;
+      return { ...m, done: doneAt !== null, status: milestoneStatus(m.due, doneAt, today) };
+    })
+  : [];
 ---
 
 {
@@ -106,7 +147,7 @@ const full = members.length >= limits.maxTeamSize;
         <div aria-hidden="true" class="decorative mt-5 h-1.5 w-20 rounded-full bg-highlight" />
         <p class="mt-5 text-lg leading-relaxed text-muted">
           {isMember
-            ? 'Your team: who is on it, your company, and links to your own files.'
+            ? 'Your team: who is on it, your company, your milestones, and links to your own files.'
             : 'You are viewing this team as a club officer. Only members can change it.'}
         </p>
 
@@ -126,6 +167,9 @@ const full = members.length >= limits.maxTeamSize;
                 {m.name ? firstName(m.name) : 'Member'}
                 {m.grade !== null && <span class="text-muted">, grade {m.grade}</span>}
                 {m.userId === access.user.id && <span class="text-muted"> (you)</span>}
+                <span class="block text-base text-muted">
+                  Modules: {moduleCounts.get(m.userId) ?? 0} of {catalog.length} done
+                </span>
               </li>
             ))}
           </ul>
@@ -238,6 +282,76 @@ const full = members.length >= limits.maxTeamSize;
                 <dd class="text-lg">{team.ticker ?? 'Not chosen yet'}</dd>
               </div>
             </dl>
+          )}
+        </section>
+
+        <section id="milestones" aria-labelledby="milestones-heading" class:list={['mt-8', card]}>
+          <h2 id="milestones-heading" class="text-3xl font-extrabold">
+            Milestones
+          </h2>
+          <p class="mt-3">
+            GHIC's checklist for your team, with the club's due dates.{' '}
+            {isMember && 'Tick what you have finished, then save.'}
+          </p>
+          {isMember ? (
+            <form method="post" class="mt-4">
+              <input type="hidden" name="action" value="milestones" />
+              <fieldset>
+                <legend class="sr-only">Milestones done</legend>
+                <ul class="space-y-3">
+                  {milestoneRows.map((m) => {
+                    const canTick = memberCanTick(m);
+                    return (
+                      <li class="flex gap-3 rounded-md border border-border p-3">
+                        <input type="hidden" name="shown" value={`${m.key}:${m.done ? 1 : 0}`} />
+                        <input
+                          type="checkbox"
+                          id={`milestone-${m.key}`}
+                          name="milestone"
+                          value={m.key}
+                          checked={m.done}
+                          disabled={!canTick}
+                          aria-describedby={`milestone-${m.key}-status`}
+                          class:list={[
+                            'mt-1 size-6 shrink-0 accent-accent disabled:cursor-not-allowed disabled:opacity-60',
+                            focus,
+                          ]}
+                        />
+                        <div class="min-w-0 flex-1">
+                          <label
+                            for={`milestone-${m.key}`}
+                            class:list={['block break-words font-bold', canTick && 'cursor-pointer']}
+                          >
+                            {m.label}
+                          </label>
+                          <p
+                            id={`milestone-${m.key}-status`}
+                            class:list={['text-muted', m.status.state === 'late' && 'font-bold']}
+                          >
+                            <time datetime={m.status.date}>{m.status.text}</time>
+                            {!canTick && <span class="block">Your mentor marks this</span>}
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </fieldset>
+              <button type="submit" class:list={['mt-4', buttonPrimary, focus, 'cursor-pointer']}>
+                Save milestones
+              </button>
+            </form>
+          ) : (
+            <ul class="mt-4 space-y-3">
+              {milestoneRows.map((m) => (
+                <li class="rounded-md border border-border p-3">
+                  <p class="break-words font-bold">{m.label}</p>
+                  <p class:list={['text-muted', m.status.state === 'late' && 'font-bold']}>
+                    <time datetime={m.status.date}>{m.status.text}</time>
+                  </p>
+                </li>
+              ))}
+            </ul>
           )}
         </section>
 
