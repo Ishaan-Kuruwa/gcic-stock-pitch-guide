@@ -162,3 +162,25 @@ export function moduleHref(entries: readonly ModuleLike[], number: number): stri
   if (!entry) throw new Error(`No module with number ${number}.`);
   return entry.data.status === 'live' ? `/learn/${moduleSlug(entry.id)}` : undefined;
 }
+
+/** One module as the account pages and /api/progress know it. */
+export interface CatalogItem {
+  number: number;
+  /** moduleSlug(id), the key saved in module_progress. */
+  slug: string;
+  title: string;
+  /** Link to the module page, only when it's live. */
+  href?: string;
+}
+
+/** Every module, sorted, with its slug (for progress saved to accounts). */
+export function moduleCatalog(
+  entries: readonly { id: string; data: Pick<ModuleData, 'number' | 'status' | 'title'> }[],
+): CatalogItem[] {
+  return sortModules(entries).map(({ id, data }) => ({
+    number: data.number,
+    slug: moduleSlug(id),
+    title: data.title,
+    ...(data.status === 'live' ? { href: `/learn/${moduleSlug(id)}` } : {}),
+  }));
+}

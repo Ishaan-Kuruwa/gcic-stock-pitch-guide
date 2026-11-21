@@ -13,11 +13,13 @@ import {
   appSchema,
   clubCodeAttempts,
   mentorInvites,
+  moduleProgress,
   profiles,
   session,
   teamCodeAttempts,
   teamLinks,
   teamMembers,
+  teamMilestones,
   teams,
   user,
 } from './schema';
@@ -41,6 +43,8 @@ export async function startTestDb(): Promise<TestDb> {
 /** Empty every table, children first. */
 export async function resetDb(db: Db): Promise<void> {
   await db.batch([
+    db.delete(moduleProgress),
+    db.delete(teamMilestones),
     db.delete(teamLinks),
     db.delete(teamMembers),
     db.delete(teams),

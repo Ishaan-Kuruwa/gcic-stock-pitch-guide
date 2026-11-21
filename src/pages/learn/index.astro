@@ -22,7 +22,8 @@ const tracker = trackerItems(modules);
   <section id="progress" aria-labelledby="progress-heading" class:list={['mt-10 max-w-4xl scroll-mt-6', fadeUp]} style={fadeDelay(1)}>
     <h2 id="progress-heading" class="text-4xl font-extrabold">Your progress</h2>
     <p class="mt-2 max-w-prose text-muted">
-      Tick off each module's deliverable when it's done. Your progress stays in this browser.
+      Tick off each module's deliverable when it's done. Signed out, your progress stays in this browser.
+      Sign in to save it to your account.
     </p>
     <div class="mt-4">
       <ProgressTracker client:visible variant="full" modules={tracker} />

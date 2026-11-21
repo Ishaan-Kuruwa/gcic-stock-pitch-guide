@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { formatDate } from '../lib/format';
 import { loadProgress, nextModule, progressSummary, saveProgress, toggleDone } from '../lib/progress';
+import {
+  clearIfSignedOut,
+  createProgressClient,
+  hasSignInHint,
+  pushTick,
+  syncOnLoad,
+  type ProgressClient,
+  type Synced,
+} from '../lib/progressSync';
+import { storage } from '../lib/storage';
 import type { TrackerItem } from '../lib/modules';
 import { card, eyebrow, focus } from '../lib/styles';
 
@@ -28,17 +38,115 @@ function Title({ m }: { m: TrackerItem }) {
   );
 }
 
-export default function ProgressTracker({ modules, variant }: Props) {
-  const [done, setDone] = useState<Set<number>>(() => new Set());
+/** Is someone signed in? The header's hint cookie says so (it grants nothing). */
+function isHinted(): boolean {
+  try {
+    return hasSignInHint(document.cookie);
+  } catch {
+    return false;
+  }
+}
+
+type SyncPhase = 'off' | 'loading' | 'ready' | 'failed';
+
+/**
+ * Done modules, from localStorage, and from the account when signed in
+ * (src/lib/progressSync.ts). Signed out, this behaves exactly as before.
+ */
+function useProgress() {
+  const [done, setDoneState] = useState<Set<number>>(() => new Set());
   const [notSaved, setNotSaved] = useState(false);
-  const [copyStatus, setCopyStatus] = useState('');
-  const [fallbackText, setFallbackText] = useState<string | null>(null);
-  const fallbackRef = useRef<HTMLTextAreaElement>(null);
+  const [accountNotSaved, setAccountNotSaved] = useState(false);
+  const doneRef = useRef<Set<number>>(new Set());
+  const phaseRef = useRef<SyncPhase>('off');
+  const clientRef = useRef<ProgressClient | null>(null);
+  const syncedRef = useRef<Synced | null>(null);
+  /** Ticks made while the account was still loading: module → done. */
+  const pendingRef = useRef(new Map<number, boolean>());
+  /** Requests run one after another, the load first. */
+  const chainRef = useRef<Promise<unknown>>(Promise.resolve());
+
+  function setDone(next: Set<number>) {
+    doneRef.current = next;
+    setDoneState(next);
+  }
+
+  function push(n: number, want: boolean) {
+    const client = clientRef.current;
+    const synced = syncedRef.current;
+    if (!client || !synced) return;
+    chainRef.current = chainRef.current
+      .then(() => pushTick(client, synced.catalog, n, want))
+      .then((ok) => {
+        if (!ok) setAccountNotSaved(true);
+      });
+  }
 
   // Load after mount, so the server render and first client render match.
   useEffect(() => {
+    const hinted = isHinted();
+    clearIfSignedOut(storage, hinted);
     setDone(loadProgress());
+    if (!hinted) return;
+
+    let cancelled = false;
+    const client = createProgressClient();
+    clientRef.current = client;
+    phaseRef.current = 'loading';
+    chainRef.current = syncOnLoad(client).then((synced) => {
+      if (cancelled) return;
+      if (!synced) {
+        phaseRef.current = 'failed';
+        if (pendingRef.current.size > 0) setAccountNotSaved(true);
+        return;
+      }
+      syncedRef.current = synced;
+      phaseRef.current = 'ready';
+      if (!synced.saved) setAccountNotSaved(true);
+      // Ticks made while loading go on top of the account's progress.
+      let next = synced.done;
+      for (const [n, want] of pendingRef.current) {
+        if (next.has(n) !== want) next = toggleDone(next, n);
+      }
+      setDone(next);
+      if (pendingRef.current.size > 0) saveProgress(next);
+      const pending = [...pendingRef.current];
+      pendingRef.current.clear();
+      for (const [n, want] of pending) push(n, want);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  function toggle(n: number) {
+    const next = toggleDone(doneRef.current, n);
+    setDone(next);
+    setNotSaved(!saveProgress(next));
+    const want = next.has(n);
+    switch (phaseRef.current) {
+      case 'loading':
+        pendingRef.current.set(n, want);
+        break;
+      case 'ready':
+        push(n, want);
+        break;
+      case 'failed':
+        setAccountNotSaved(true);
+        break;
+      case 'off':
+        break;
+    }
+  }
+
+  return { done, toggle, notSaved, accountNotSaved };
+}
+
+export default function ProgressTracker({ modules, variant }: Props) {
+  const { done, toggle, notSaved, accountNotSaved } = useProgress();
+  const [copyStatus, setCopyStatus] = useState('');
+  const [fallbackText, setFallbackText] = useState<string | null>(null);
+  const fallbackRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (fallbackText !== null) {
@@ -84,9 +192,7 @@ export default function ProgressTracker({ modules, variant }: Props) {
   }
 
   function onToggle(n: number) {
-    const updated = toggleDone(done, n);
-    setDone(updated);
-    setNotSaved(!saveProgress(updated));
+    toggle(n);
     setCopyStatus('');
     setFallbackText(null);
   }
@@ -159,6 +265,11 @@ export default function ProgressTracker({ modules, variant }: Props) {
       {notSaved && (
         <p class="mt-3 text-sm text-muted">
           Your browser isn't saving progress, so your ticks will reset when you close this page.
+        </p>
+      )}
+      {accountNotSaved && (
+        <p role="status" class="mt-3 text-sm text-muted">
+          Not saved, you're offline or signed out
         </p>
       )}
 

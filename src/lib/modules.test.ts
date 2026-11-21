@@ -9,6 +9,7 @@ import {
   moduleSlug,
   prevNext,
   sortModules,
+  moduleCatalog,
   trackerItems,
   type ModuleLike,
   type ModuleStatus,
@@ -180,6 +181,20 @@ describe('trackerItems', () => {
     expect(trackerItems([entry(2, 'draft'), entry(1, 'live')])).toEqual([
       { number: 1, title: 'T1', deliverable: 'D1', due: '2027-01-04', href: '/learn/m1' },
       { number: 2, title: 'T2', deliverable: 'D2', due: '2027-01-04' },
+    ]);
+  });
+});
+
+describe('moduleCatalog', () => {
+  it('sorts modules, adds slugs and links only live ones', () => {
+    expect(
+      moduleCatalog([
+        { id: '05-value-the-company', data: { number: 5, status: 'draft', title: 'Value' } },
+        { id: '01-pick-your-company', data: { number: 1, status: 'live', title: 'Pick' } },
+      ]),
+    ).toEqual([
+      { number: 1, slug: 'pick-your-company', title: 'Pick', href: '/learn/pick-your-company' },
+      { number: 5, slug: 'value-the-company', title: 'Value' },
     ]);
   });
 });

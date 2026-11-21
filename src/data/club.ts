@@ -42,3 +42,39 @@ export const templates: Readonly<Record<TemplateId, ClubTemplate>> = {
     url: 'https://docs.google.com/presentation/d/1-Eid1VVP1-RkWeKtuCropn4umob5kyjRHXcTjX8Ku0Q/copy',
   },
 };
+
+/**
+ * GHIC's time zone (Green Hope High School, Cary, NC). It decides which day
+ * "today" is when the team page says a milestone is due or late.
+ */
+export const clubTimeZone = 'America/New_York' as const;
+
+/** One step on a team's milestone checklist (shown on /team/[id]). */
+export interface Milestone {
+  /** Stored in the database. Don't rename a key mid-season: ticks on the old key stop showing. */
+  key: string;
+  label: string;
+  /** GHIC's due date (YYYY-MM-DD), on or before targetSubmitDate. */
+  due: string;
+  /** Only shown to mentored teams, and only their mentor can tick it. */
+  mentoredOnly?: boolean;
+}
+
+/**
+ * GHIC's team milestones, in order. These are the club's own due dates, not
+ * YIS rules. To change a due date, edit it here; the test in
+ * src/lib/club.test.ts checks every date is on or before targetSubmitDate.
+ */
+export const milestones = [
+  { key: 'company-picked', label: 'Company picked and claimed on the claim board', due: '2026-12-12' },
+  { key: 'yis-registered', label: 'Registered with YIS', due: '2026-12-19' },
+  { key: 'financials', label: 'Financials sheet filled in', due: '2027-01-02' },
+  { key: 'comps', label: 'Comps and target price done', due: '2027-01-09' },
+  { key: 'report-draft', label: 'Report first draft', due: '2027-01-15' },
+  { key: 'mentor-review', label: 'Mentor reviewed the draft', due: '2027-01-22', mentoredOnly: true },
+  { key: 'slides', label: 'Slides done', due: '2027-02-05' },
+  { key: 'video', label: 'Video recorded, under 10 minutes', due: '2027-02-12' },
+  { key: 'submitted', label: 'Submitted to YIS', due: targetSubmitDate },
+] as const satisfies readonly Milestone[];
+
+export type MilestoneKey = (typeof milestones)[number]['key'];
